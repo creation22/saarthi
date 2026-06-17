@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(grep -iE \"\\\\.\\(png|jpg|jpeg|webp|svg\\)$\")",
+      "Bash(grep -iE \"\\\\.\\(png|jpg\\)$\")",
+      "Bash(grep -iE \"^\\\\d+\\\\.jpg$\")",
+      "WebFetch(domain:www.mintlify.com)",
+      "Bash(grep -E \"\\\\.\\(config|js|json\\)$\")",
+      "Bash(grep -E \"\\\\.\\(js|jsx|json\\)$\")",
+      "Bash(xargs grep:*)",
+      "Bash(npx shadcn@canary init -d)",
+      "Bash(npx shadcn@canary add input badge separator scroll-area select tooltip avatar --yes)",
+      "Bash(grep -n \"rgba\\(237,233,225\\\\|rgba\\(255,255,255\\\\|#050509\\\\|#07070F\\\\|#09091A\\\\|#04040D\\\\|#EDE9E1\\\\|rgba\\(6,6,18\\\\|rgba\\(10,10,24\\\\|rgba\\(4,4,13\\\\|color: '#[0-9A-Fa-f]\" d:/MajorProject/Frontend/src/components/landing/*.jsx d:/MajorProject/Frontend/src/components/ResizableNavbar.jsx)",
+      "Bash(grep -n \"background.*#04040D\\\\|background.*#0E0E1E\" /d/MajorProject/Frontend/src/pages/*.jsx)"
+    ]
+  }
+}

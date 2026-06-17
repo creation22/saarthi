@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(grep -iE \"\\\\.\\(png|jpg|jpeg|webp\\)$\")",
+      "Bash(grep -iE \"\\\\.png$\")",
+      "Bash(grep -iE \"\\\\.\\(png|jpg|jpeg\\)$\")",
+      "Bash(awk '{print $NF}')"
+    ]
+  }
+}
