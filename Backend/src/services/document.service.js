@@ -1,6 +1,17 @@
 import PDFDocument from 'pdfkit';
 import { Document, Packer, Paragraph, TextRun, HeadingLevel, AlignmentType } from 'docx';
 
+const MAX_BODY_CHARS = 60000;
+
+function coerceBody(body) {
+  const str = typeof body === 'string' ? body : String(body ?? '');
+  const trimmed = str.trim();
+  if (!trimmed) {
+    throw new Error('Generated document is empty');
+  }
+  return trimmed.length > MAX_BODY_CHARS ? trimmed.slice(0, MAX_BODY_CHARS) : trimmed;
+}
+
 /**
  * Generate a formatted PDF document.
  * @param {string} title  Document title
@@ -8,6 +19,8 @@ import { Document, Packer, Paragraph, TextRun, HeadingLevel, AlignmentType } fro
  * @returns {Promise<Buffer>}
  */
 export function generatePDF(title, body) {
+  const safeBody = coerceBody(body);
+  const safeTitle = typeof title === 'string' ? title.slice(0, 200) : 'Document';
   return new Promise((resolve, reject) => {
     const doc = new PDFDocument({ margin: 72, size: 'A4' });
     const buffers = [];
@@ -20,7 +33,7 @@ export function generatePDF(title, body) {
     doc
       .fontSize(16)
       .font('Helvetica-Bold')
-      .text(title, { align: 'center' });
+      .text(safeTitle, { align: 'center' });
 
     doc.moveDown(0.5);
 
@@ -38,7 +51,7 @@ export function generatePDF(title, body) {
       .fontSize(11)
       .font('Helvetica')
       .fillColor('#000000')
-      .text(body, { align: 'left', lineGap: 4 });
+      .text(safeBody, { align: 'left', lineGap: 4 });
 
     doc.end();
   });
@@ -51,17 +64,19 @@ export function generatePDF(title, body) {
  * @returns {Promise<Buffer>}
  */
 export async function generateDOCX(title, body) {
+  const safeBody = coerceBody(body);
+  const safeTitle = typeof title === 'string' ? title.slice(0, 200) : 'Document';
   const doc = new Document({
     sections: [
       {
         children: [
           new Paragraph({
-            text: title,
+            text: safeTitle,
             heading: HeadingLevel.HEADING_1,
             alignment: AlignmentType.CENTER,
           }),
           new Paragraph({ text: '' }),
-          ...body.split('\n').map(
+          ...safeBody.split('\n').map(
             (line) =>
               new Paragraph({
                 children: [new TextRun({ text: line, size: 22 })],

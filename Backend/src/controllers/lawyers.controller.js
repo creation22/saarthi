@@ -9,62 +9,73 @@ const dlsaData    = JSON.parse(readFileSync(join(__dir, '../data/dlsa.json'), 'u
 const lawyersData = JSON.parse(readFileSync(join(__dir, '../data/lawyers_curated.json'), 'utf-8'));
 const ALL_ENTRIES = [...dlsaData, ...lawyersData];
 
+const MAX_RESULTS = 100;
+const MAX_QUERY_LENGTH = 120;
+
+function safeLower(v) {
+  return typeof v === 'string' ? v.toLowerCase() : '';
+}
+
 export function searchLawyers(req, res) {
-  const { state, district, type, q } = req.query;
+  const { state, district, type, q } = req.query ?? {};
 
   let results = ALL_ENTRIES;
 
-  if (state && state !== 'All India') {
-    results = results.filter(e => e.state.toLowerCase() === state.toLowerCase()
+  if (typeof state === 'string' && state && state !== 'All India') {
+    const s = state.toLowerCase();
+    results = results.filter(e => safeLower(e.state) === s
                                 || e.state === 'All India');
   }
 
-  if (district) {
+  if (typeof district === 'string' && district) {
+    const d = district.toLowerCase();
     results = results.filter(e =>
-      e.district.toLowerCase().includes(district.toLowerCase()) ||
+      safeLower(e.district).includes(d) ||
       e.district === 'All India'
     );
   }
 
-  if (type) {
-    results = results.filter(e => e.type.toLowerCase() === type.toLowerCase());
+  if (typeof type === 'string' && type) {
+    const t = type.toLowerCase();
+    results = results.filter(e => safeLower(e.type) === t);
   }
 
-  if (q) {
-    const ql = q.toLowerCase();
+  if (typeof q === 'string' && q) {
+    const ql = q.slice(0, MAX_QUERY_LENGTH).toLowerCase();
     results = results.filter(e =>
-      e.name.toLowerCase().includes(ql) ||
-      (e.services || []).some(s => s.toLowerCase().includes(ql)) ||
-      (e.specialization || []).some(s => s.toLowerCase().includes(ql)) ||
-      e.state.toLowerCase().includes(ql) ||
-      e.district.toLowerCase().includes(ql)
+      safeLower(e.name).includes(ql) ||
+      (Array.isArray(e.services) ? e.services : []).some(s => safeLower(s).includes(ql)) ||
+      (Array.isArray(e.specialization) ? e.specialization : []).some(s => safeLower(s).includes(ql)) ||
+      safeLower(e.state).includes(ql) ||
+      safeLower(e.district).includes(ql)
     );
   }
 
   // Always include the NALSA helpline in results
-  const hasHelpline = results.some(e => e.id === 'nalsa_helpline');
+  const hasHelpline = results.some(e => e?.id === 'nalsa_helpline');
   if (!hasHelpline && !type && !q) {
-    const helpline = ALL_ENTRIES.find(e => e.id === 'nalsa_helpline');
+    const helpline = ALL_ENTRIES.find(e => e?.id === 'nalsa_helpline');
     if (helpline) results = [...results, helpline];
   }
 
-  res.json({ results, total: results.length });
+  const capped = results.slice(0, MAX_RESULTS);
+  res.json({ results: capped, total: results.length });
 }
 
 export function getStates(req, res) {
-  const states = [...new Set(ALL_ENTRIES.map(e => e.state))]
+  const states = [...new Set(ALL_ENTRIES.map(e => e?.state).filter(s => typeof s === 'string'))]
     .filter(s => s !== 'All India')
     .sort();
   res.json({ states: ['All India', ...states] });
 }
 
 export function getDistricts(req, res) {
-  const { state } = req.query;
-  let entries = state && state !== 'All India'
-    ? ALL_ENTRIES.filter(e => e.state.toLowerCase() === state.toLowerCase())
+  const { state } = req.query ?? {};
+  let entries = typeof state === 'string' && state && state !== 'All India'
+    ? ALL_ENTRIES.filter(e => safeLower(e.state) === state.toLowerCase())
     : ALL_ENTRIES;
 
-  const districts = [...new Set(entries.map(e => e.district))]
+  const districts = [...new Set(entries.map(e => e?.district).filter(d => typeof d === 'string'))]
     .filter(d => d !== 'All India')
     .sort();
   res.json({ districts });

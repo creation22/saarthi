@@ -15,8 +15,8 @@ const documentRecordSchema = new mongoose.Schema(
 const matterSchema = new mongoose.Schema(
   {
     userId:      { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, index: true },
-    title:       { type: String, required: true, trim: true },
-    description: { type: String, default: '' },
+    title:       { type: String, required: true, trim: true, maxlength: 200 },
+    description: { type: String, default: '', maxlength: 5000 },
     category:    {
       type: String,
       enum: ['tenant', 'consumer', 'workplace', 'family', 'criminal',
@@ -27,8 +27,8 @@ const matterSchema = new mongoose.Schema(
     sessions:    [{ type: String }],   // sessionIds
     trackedCases:[{ type: mongoose.Schema.Types.ObjectId, ref: 'TrackedCase' }],
     documents:   [documentRecordSchema],
-    notes:       { type: String, default: '' },
-    tags:        [{ type: String }],
+    notes:       { type: String, default: '', maxlength: 20000 },
+    tags:        [{ type: String, maxlength: 50 }],
   },
   { timestamps: true }
 );

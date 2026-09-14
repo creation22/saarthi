@@ -3,8 +3,10 @@ import { fetchCaseByCNR, validateCNR } from '../services/ecourts.service.js';
 
 export async function addTrackedCase(req, res, next) {
   try {
-    const { cnrNumber } = req.body;
-    if (!cnrNumber) return res.status(400).json({ error: 'cnrNumber is required' });
+    const { cnrNumber } = req.body ?? {};
+    if (typeof cnrNumber !== 'string' || !cnrNumber.trim()) {
+      return res.status(400).json({ error: 'cnrNumber is required' });
+    }
 
     const cnr = cnrNumber.trim().toUpperCase();
     if (!validateCNR(cnr)) {
@@ -24,12 +26,22 @@ export async function addTrackedCase(req, res, next) {
       fetchError = err.message;
     }
 
-    const trackedCase = await TrackedCase.create({
-      userId: req.user.sub,
-      ...caseData,
-      lastFetched: new Date(),
-      fetchError,
-    });
+    let trackedCase;
+    try {
+      trackedCase = await TrackedCase.create({
+        userId: req.user.sub,
+        ...caseData,
+        lastFetched: new Date(),
+        fetchError,
+      });
+    } catch (err) {
+      // Lost a concurrent-insert race — return the winner as 409
+      if (err?.code === 11000) {
+        const winner = await TrackedCase.findOne({ userId: req.user.sub, cnrNumber: cnr });
+        return res.status(409).json({ error: 'You are already tracking this case', case: winner });
+      }
+      throw err;
+    }
 
     res.status(201).json({ case: trackedCase });
   } catch (err) {
@@ -71,16 +83,27 @@ export async function refreshCase(req, res, next) {
     let fetchError = null;
     try {
       const data = await fetchCaseByCNR(trackedCase.cnrNumber);
-      // Merge new hearings without duplicating existing ones
-      const newHearings = data.hearings.filter(h =>
-        !trackedCase.hearings.some(e => e.date?.getTime() === h.date?.getTime())
-      );
-      await trackedCase.updateOne({
-        ...data,
-        hearings: [...trackedCase.hearings, ...newHearings],
-        lastFetched: new Date(),
-        fetchError: null,
-      });
+      // Merge new hearings without duplicating existing ones.
+      // Identity = date (when present) + purpose, so dateless rows can't
+      // collapse into each other via undefined === undefined.
+      const hearingKey = (h) => {
+        const t = h?.date instanceof Date ? h.date.getTime()
+          : h?.date ? new Date(h.date).getTime() : 'nodate';
+        return `${Number.isNaN(t) ? 'nodate' : t}|${(h?.purpose || '').trim().slice(0, 80)}`;
+      };
+      const existingKeys = new Set((trackedCase.hearings || []).map(hearingKey));
+      const newHearings = (data.hearings || []).filter((h) => !existingKeys.has(hearingKey(h)));
+      // Only overwrite fields the fresh fetch actually populated, so a thin
+      // parse can't wipe previously stored values with '' / null.
+      const merged = { lastFetched: new Date(), fetchError: null };
+      for (const [k, v] of Object.entries(data)) {
+        if (k === 'hearings' || k === 'cnrNumber') continue;
+        if (v === '' || v === null || v === undefined) continue;
+        if (k === 'parties' && !v?.petitioner && !v?.respondent) continue;
+        merged[k] = v;
+      }
+      merged.hearings = [...(trackedCase.hearings || []), ...newHearings];
+      await trackedCase.updateOne(merged);
     } catch (err) {
       fetchError = err.message;
       await trackedCase.updateOne({ lastFetched: new Date(), fetchError });

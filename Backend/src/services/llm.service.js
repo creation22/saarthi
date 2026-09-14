@@ -1,6 +1,28 @@
 import Anthropic from '@anthropic-ai/sdk';
 
-const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+const client = new Anthropic({
+  apiKey: process.env.ANTHROPIC_API_KEY,
+  timeout: 90000,
+  maxRetries: 2,
+});
+
+const MAX_INPUT_CHARS = 12000;
+
+/** Extract the first text block safely — the API can return refusals/tool blocks. */
+function extractText(message) {
+  const block = message?.content?.find((b) => b?.type === 'text' && typeof b.text === 'string');
+  if (!block || !block.text.trim()) {
+    const err = new Error('Analysis model returned an empty response. Please try again.');
+    err.status = 502;
+    throw err;
+  }
+  return block.text;
+}
+
+function capInput(text) {
+  const str = typeof text === 'string' ? text : String(text ?? '');
+  return str.length > MAX_INPUT_CHARS ? str.slice(0, MAX_INPUT_CHARS) : str;
+}
 
 const SYSTEM_PROMPT = `You are an expert Indian legal assistant. You ONLY provide guidance based on the legal provisions retrieved and supplied to you. You must:
 
@@ -20,10 +42,10 @@ Never fabricate statutes or case citations.`;
  */
 export async function getLegalGuidance(userQuery, legalContext) {
   const userPrompt = `RETRIEVED LEGAL CONTEXT:
-${legalContext}
+${capInput(legalContext)}
 
 USER QUERY:
-${userQuery}
+${capInput(userQuery)}
 
 Please provide:
 ### Applicable Law
@@ -45,7 +67,7 @@ Please provide:
     messages: [{ role: 'user', content: userPrompt }],
   });
 
-  return message.content[0].text;
+  return extractText(message);
 }
 
 /**
@@ -62,13 +84,16 @@ Please provide:
  */
 export async function analyzeContract(extractedText, filename = '') {
   // Cap at ~14 000 chars to avoid token overflow while keeping depth
-  const text = extractedText.length > 14000
-    ? extractedText.slice(0, 14000) + '\n\n[Document truncated — first 14 000 characters analysed]'
-    : extractedText;
+  const capped = typeof extractedText === 'string' ? extractedText : String(extractedText ?? '');
+  const text = capped.length > 14000
+    ? capped.slice(0, 14000) + '\n\n[Document truncated — first 14 000 characters analysed]'
+    : capped;
+  // Filenames are user-controlled — keep them to one safe line in the prompt
+  const safeFilename = String(filename ?? '').replace(/[\r\n\t]+/g, ' ').trim().slice(0, 120);
 
   const prompt = `You are a senior Indian contract lawyer. Analyse the following legal document thoroughly and return ONLY valid JSON — no markdown, no preamble, no trailing text.
 
-DOCUMENT FILENAME: ${filename}
+DOCUMENT FILENAME: ${safeFilename}
 
 DOCUMENT TEXT:
 ${text}
@@ -115,14 +140,24 @@ Rules:
     messages: [{ role: 'user', content: prompt }],
   });
 
-  const raw = message.content[0].text.trim();
+  const raw = extractText(message).trim();
 
   // Strip accidental markdown fences if model wraps output
-  const jsonStr = raw.startsWith('```')
-    ? raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim()
+  let jsonStr = raw.startsWith('```')
+    ? raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```[\s\S]*$/, '').trim()
     : raw;
 
-  return JSON.parse(jsonStr);
+  try {
+    return JSON.parse(jsonStr);
+  } catch {
+    // Fall back to the largest {...} block in case of preamble/trailing text
+    const start = jsonStr.indexOf('{');
+    const end = jsonStr.lastIndexOf('}');
+    if (start !== -1 && end > start) {
+      return JSON.parse(jsonStr.slice(start, end + 1));
+    }
+    throw new SyntaxError('Model response was not valid JSON');
+  }
 }
 
 export async function draftLegalDocument(query, docType) {
@@ -130,16 +165,20 @@ export async function draftLegalDocument(query, docType) {
     fir: 'First Information Report (FIR)',
     consumer: 'Consumer Complaint Letter to the District Consumer Disputes Redressal Commission',
     notice: 'Legal Notice to the opposing party',
+    rti: 'RTI Application to the Public Information Officer under the RTI Act, 2005',
+    demand: 'Demand Notice to the employer for recovery of unpaid wages',
   };
+
+  const cleanQuery = capInput(query);
 
   const prompt = `Draft a formal ${docDescriptions[docType] ?? 'legal document'} in English based on the following user description:
 
-"${query}"
+"${cleanQuery}"
 
 Requirements:
-- Use proper formal/legal language appropriate for ${docDescriptions[docType]}.
+- Use proper formal/legal language appropriate for ${docDescriptions[docType] ?? 'a legal document'}.
 - Fill in placeholder fields with [FIELD_NAME] where exact details are missing.
-- Include all standard sections a ${docDescriptions[docType]} must contain under Indian law.
+- Include all standard sections a ${docDescriptions[docType] ?? 'legal document'} must contain under Indian law.
 - Return ONLY the document body text — no explanations, no preamble.`;
 
   const message = await client.messages.create({
@@ -148,5 +187,5 @@ Requirements:
     messages: [{ role: 'user', content: prompt }],
   });
 
-  return message.content[0].text;
+  return extractText(message);
 }

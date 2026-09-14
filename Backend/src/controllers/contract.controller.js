@@ -1,25 +1,37 @@
-import { createRequire } from 'module';
 import mammoth from 'mammoth';
+import { PDFParse } from 'pdf-parse';
 import { analyzeContract } from '../services/llm.service.js';
-
-// pdf-parse has a CJS-only entry that auto-runs tests on module load;
-// use the raw lib file to avoid that bug in ESM context.
-const require = createRequire(import.meta.url);
-const pdfParse = require('pdf-parse/lib/pdf-parse.js');
 
 const SUPPORTED_TYPES = {
   'application/pdf': 'pdf',
   'application/vnd.openxmlformats-officedocument.wordprocessingml.document': 'docx',
-  'application/msword': 'docx',
+  'application/msword': 'doc',
   'text/plain': 'txt',
 };
+
+const EXTENSION_TO_TYPE = {
+  '.pdf': 'pdf',
+  '.docx': 'docx',
+  '.txt': 'txt',
+};
+
+function sanitizeFilename(name) {
+  // Strip path components + prompt-injection newlines before echoing into prompts/responses
+  return String(name ?? '')
+    .split(/[\\/]/).pop()
+    .replace(/[\r\n\t]+/g, ' ')
+    .trim()
+    .slice(0, 120);
+}
 
 async function extractText(buffer, mimeType) {
   const type = SUPPORTED_TYPES[mimeType];
 
   if (type === 'pdf') {
-    const data = await pdfParse(buffer);
-    return data.text;
+    const parser = new PDFParse({ data: buffer });
+    const result = await parser.getText();
+    await parser.destroy();
+    return result.text;
   }
 
   if (type === 'docx') {
@@ -41,10 +53,31 @@ export async function analyzeContractController(req, res, next) {
     }
 
     const { mimetype, buffer, originalname } = req.file;
+    const filename = sanitizeFilename(originalname) || 'document';
 
-    if (!SUPPORTED_TYPES[mimetype]) {
+    const mimeType = SUPPORTED_TYPES[mimetype];
+    if (!mimeType) {
       return res.status(415).json({
         error: 'Unsupported file type. Please upload a PDF, DOCX, or TXT document.',
+      });
+    }
+
+    // Don't trust the client-supplied MIME type alone — cross-check the extension.
+    // Legacy .doc (application/msword) is a binary format mammoth can't parse.
+    const ext = filename.toLowerCase().slice(filename.toLowerCase().lastIndexOf('.'));
+    if (mimeType === 'doc' || (ext && !EXTENSION_TO_TYPE[ext] && ext !== '.doc')) {
+      return res.status(415).json({
+        error: 'Unsupported file type. Please upload a PDF, DOCX, or TXT document.',
+      });
+    }
+    if (ext === '.doc') {
+      return res.status(415).json({
+        error: 'Legacy .doc files are not supported. Please save the document as .docx or .pdf and retry.',
+      });
+    }
+    if (ext && EXTENSION_TO_TYPE[ext] && EXTENSION_TO_TYPE[ext] !== mimeType) {
+      return res.status(415).json({
+        error: 'File extension does not match its type. Please upload a valid PDF, DOCX, or TXT document.',
       });
     }
 
@@ -56,10 +89,10 @@ export async function analyzeContractController(req, res, next) {
       });
     }
 
-    const analysis = await analyzeContract(extractedText, originalname);
+    const analysis = await analyzeContract(extractedText, filename);
 
     res.json({
-      filename: originalname,
+      filename,
       charCount: extractedText.length,
       analysis,
     });

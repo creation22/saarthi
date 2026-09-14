@@ -11,4 +11,8 @@ const feedbackSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+// Enforce "one rating per session+message" at the DB level (the controller
+// upserts on this key, so concurrent votes can't create duplicates)
+feedbackSchema.index({ sessionId: 1, messageIndex: 1 }, { unique: true });
+
 export const Feedback = mongoose.model('Feedback', feedbackSchema);

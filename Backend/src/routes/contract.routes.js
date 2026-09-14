@@ -13,7 +13,12 @@ const upload = multer({
       'application/msword',
       'text/plain',
     ];
-    cb(null, allowed.includes(file.mimetype));
+    if (!allowed.includes(file.mimetype)) {
+      const err = new Error('Unsupported file type. Please upload a PDF, DOCX, or TXT document.');
+      err.status = 415;
+      return cb(err);
+    }
+    cb(null, true);
   },
 });
 

@@ -12,7 +12,8 @@ export async function getSession(req, res, next) {
 
 export async function deleteSession(req, res, next) {
   try {
-    await Session.deleteOne({ sessionId: req.params.id });
+    const result = await Session.deleteOne({ sessionId: req.params.id });
+    if (result.deletedCount === 0) return res.status(404).json({ error: 'Session not found' });
     res.json({ message: 'Session deleted' });
   } catch (err) {
     next(err);

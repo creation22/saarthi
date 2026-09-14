@@ -52,8 +52,26 @@ function resolveSourceMeta(filename) {
  * @returns {{ contextString: string, citations: Array<{label, url, snippet}> }}
  */
 export async function retrieveLegalContext(query, topK = 5) {
-  const store = await getVectorStore();
-  const results = await store.similaritySearch(query, topK);
+  let store;
+  try {
+    store = await getVectorStore();
+  } catch (err) {
+    console.error('Vector store unavailable:', err.message);
+    const e = new Error('Legal knowledge base is temporarily unavailable. Please try again later.');
+    e.status = 503;
+    throw e;
+  }
+
+  const k = Number.isInteger(topK) && topK > 0 ? Math.min(topK, 10) : 5;
+  let results;
+  try {
+    results = await store.similaritySearch(query, k);
+  } catch (err) {
+    console.error('Similarity search failed:', err.message);
+    const e = new Error('Legal knowledge base is temporarily unavailable. Please try again later.');
+    e.status = 503;
+    throw e;
+  }
 
   if (!results.length) {
     return {
@@ -71,16 +89,19 @@ export async function retrieveLegalContext(query, topK = 5) {
     if (!seenSources.has(src)) {
       seenSources.add(src);
       const meta = resolveSourceMeta(src);
+      const snippet = typeof r.pageContent === 'string' && r.pageContent.length
+        ? r.pageContent.slice(0, 120).trim() + '…'
+        : meta.label;
       citations.push({
         label: meta.label,
         url: meta.url,
-        snippet: r.pageContent.slice(0, 120).trim() + '…',
+        snippet,
       });
     }
   });
 
   const contextString = results
-    .map((r, i) => `[Source ${i + 1}: ${r.metadata?.source ?? 'unknown'}]\n${r.pageContent}`)
+    .map((r, i) => `[Source ${i + 1}: ${r.metadata?.source ?? 'unknown'}]\n${typeof r.pageContent === 'string' ? r.pageContent : ''}`)
     .join('\n\n---\n\n');
 
   return { contextString, citations };
