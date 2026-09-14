@@ -1,10 +1,11 @@
 import dns from 'node:dns';
 import mongoose from 'mongoose';
 
-// Configure DNS resolution for MongoDB Atlas SRV lookup on Windows/restricted networks
+// Use system DNS (works with Atlas SRV on most networks).
+// NOTE: don't force dns.setServers(['8.8.8.8', ...]) — direct UDP to
+// public DNS is blocked on some networks and breaks SRV lookup with ECONNREFUSED.
 try {
   dns.setDefaultResultOrder('ipv4first');
-  dns.setServers(['8.8.8.8', '1.1.1.1']);
 } catch {
   // Ignore fallback if custom DNS setting is not permitted in environment
 }
