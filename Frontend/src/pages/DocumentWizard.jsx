@@ -158,7 +158,7 @@ function StepChoose({ onChoose }) {
         {Object.entries(DOC_TYPES).map(([key, dt]) => (
           <motion.button key={key} variants={fadeUp}
             onClick={() => onChoose(key)}
-            className="group relative flex flex-col items-start gap-3 rounded-2xl border p-6 text-left transition-all"
+            className="group relative flex flex-col items-start gap-3 rounded-2xl border p-6 text-left transition-[border-color,background-color,box-shadow,transform] duration-150"
             style={{ borderColor: 'var(--color-border)', background: 'var(--color-ivory)' }}
             whileHover={{ y: -4, borderColor: dt.color + '60',
                           boxShadow: `0 16px 40px rgba(22,15,8,0.09)`,
@@ -334,7 +334,8 @@ function StepForm({ docType, formData, onChange, onBack, onNext }) {
         <motion.button onClick={() => { if (validate()) onNext(); }}
           className="flex items-center gap-2 rounded-full px-8 py-3 text-sm font-medium text-white"
           style={{ background: dt.color, fontFamily: 'var(--font-sans)' }}
-          whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
+          whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}
+          transition={{ duration: 0.15, ease: [0.22, 1, 0.36, 1] }}>
           Preview & Download →
         </motion.button>
       </div>
@@ -356,15 +357,21 @@ function StepDownload({ docType, formData, onBack }) {
   });
 
   const handleDownload = async () => {
+    if (loading) return;
     setLoading(true);
     try {
       const query = buildQuery(docType, formData);
       const res   = await generateDocument(query, docType, format);
-      const url   = URL.createObjectURL(new Blob([res.data]));
+      const mime = format === 'docx'
+        ? 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+        : 'application/pdf';
+      const url   = URL.createObjectURL(new Blob([res.data], { type: mime }));
       const a     = document.createElement('a');
       a.href = url;
       a.download = `${dt.label.replace(/\s+/g, '_')}.${format}`;
+      document.body.appendChild(a);
       a.click();
+      a.remove();
       URL.revokeObjectURL(url);
       toast.success(`${dt.label} downloaded as ${format.toUpperCase()}!`);
     } catch {
@@ -450,7 +457,7 @@ function StepDownload({ docType, formData, onBack }) {
              style={{ borderColor: 'var(--color-border)', background: 'var(--color-ivory-deep)' }}>
           {['pdf', 'docx'].map(f => (
             <button key={f} onClick={() => setFormat(f)}
-              className="rounded-xl px-4 py-1.5 text-xs font-medium transition-all"
+              className="rounded-xl px-4 py-1.5 text-xs font-medium transition-colors duration-150"
               style={{
                 background: format === f ? dt.color : 'transparent',
                 color: format === f ? '#fff' : 'var(--color-ink-muted)',
@@ -465,7 +472,8 @@ function StepDownload({ docType, formData, onBack }) {
           className="flex items-center gap-2.5 rounded-full px-8 py-3 text-sm font-medium text-white disabled:opacity-60"
           style={{ background: dt.color, fontFamily: 'var(--font-sans)',
                    boxShadow: `0 4px 20px ${dt.color}40` }}
-          whileHover={{ scale: loading ? 1 : 1.04 }} whileTap={{ scale: 0.97 }}>
+          whileHover={{ scale: loading ? 1 : 1.02 }} whileTap={{ scale: 0.97 }}
+          transition={{ duration: 0.15, ease: [0.22, 1, 0.36, 1] }}>
           {loading ? (
             <>
               <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />

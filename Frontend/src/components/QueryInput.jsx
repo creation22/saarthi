@@ -6,7 +6,7 @@ import { MicIcon, StopIcon, SendIcon, SpinnerIcon } from './ui/icons.jsx';
 
 export default function QueryInput({ onSubmitText, onSubmitVoice, loading }) {
   const [text, setText] = useState('');
-  const { recording, error: recErr, start, stop } = useRecorder();
+  const { recording, start, stop } = useRecorder();
 
   const handleSubmit = e => {
     e.preventDefault();
@@ -21,12 +21,13 @@ export default function QueryInput({ onSubmitText, onSubmitVoice, loading }) {
   };
 
   const handleMic = async () => {
+    if (loading) return;
     if (recording) {
       const blob = await stop();
       if (blob) onSubmitVoice(blob);
     } else {
-      if (recErr) { toast.error(recErr); return; }
-      await start();
+      const failure = await start();
+      if (failure) toast.error(failure);
     }
   };
 
@@ -34,7 +35,7 @@ export default function QueryInput({ onSubmitText, onSubmitVoice, loading }) {
 
   return (
     <form onSubmit={handleSubmit}
-          className="flex items-end gap-2 rounded-2xl border px-4 py-3 transition-all focus-within:shadow-sm"
+          className="flex items-end gap-2 rounded-2xl border px-4 py-3 focus-within:shadow-sm"
           style={{
             borderColor: recording ? 'var(--color-saffron)' : 'var(--color-glass-border)',
             background: 'var(--color-ivory)',
@@ -70,8 +71,9 @@ export default function QueryInput({ onSubmitText, onSubmitVoice, loading }) {
         onClick={handleMic}
         disabled={loading}
         title={recording ? 'Stop recording' : 'Voice input'}
-        whileHover={!loading ? { scale: 1.07 } : {}}
-        whileTap={!loading ? { scale: 0.93 } : {}}
+        whileHover={!loading ? { scale: 1.02 } : {}}
+        whileTap={!loading ? { scale: 0.97 } : {}}
+        transition={{ duration: 0.15, ease: [0.22, 1, 0.36, 1] }}
         className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-xl transition-colors disabled:opacity-40"
         style={{
           background: recording ? 'var(--color-saffron)' : 'var(--color-glass-bg)',
@@ -109,8 +111,9 @@ export default function QueryInput({ onSubmitText, onSubmitVoice, loading }) {
       <motion.button
         type="submit"
         disabled={!canSend}
-        whileHover={canSend ? { scale: 1.04 } : {}}
-        whileTap={canSend ? { scale: 0.95 } : {}}
+        whileHover={canSend ? { scale: 1.02 } : {}}
+        whileTap={canSend ? { scale: 0.97 } : {}}
+        transition={{ duration: 0.15, ease: [0.22, 1, 0.36, 1] }}
         className="flex h-9 items-center gap-1.5 rounded-xl px-4 text-xs font-medium text-white transition-opacity disabled:opacity-35"
         style={{ background: 'var(--color-saffron)', fontFamily: 'var(--font-sans)' }}
       >

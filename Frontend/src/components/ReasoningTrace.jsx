@@ -6,7 +6,7 @@ export default function ReasoningTrace({ guidance }) {
   if (!guidance) return null;
 
   return (
-    <div className="mt-2 overflow-hidden rounded-xl border transition-all duration-200"
+    <div className="mt-2 overflow-hidden rounded-xl border transition-colors duration-150"
          style={{ borderColor: open ? 'var(--color-gold)' : 'var(--color-border)' }}>
       <button
         onClick={() => setOpen(o => !o)}

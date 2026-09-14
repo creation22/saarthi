@@ -13,8 +13,8 @@ export function ResizableNavbar({ navItems, ctaLabel = 'Get Started', ctaTo = '/
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const { user, isLoggedIn, userDisplay } = useAuth();
 
-  const navBg     = scrolled ? 'rgba(251,248,242,0.96)' : 'rgba(251,248,242,0.88)';
-  const navShadow = scrolled ? '0 0 0 1px rgba(0,0,0,0.08), 0 8px 40px rgba(0,0,0,0.10)' : 'none';
+  const navBg     = scrolled ? 'rgba(246,241,233,0.96)' : 'transparent';
+  const navShadow = scrolled ? '0 0 0 1px rgba(0,0,0,0.07), 0 8px 40px rgba(0,0,0,0.09)' : 'none';
 
   useMotionValueEvent(scrollY, 'change', v => setScrolled(v > 80));
 
@@ -26,28 +26,27 @@ export function ResizableNavbar({ navItems, ctaLabel = 'Get Started', ctaTo = '/
 
         {/* ── Desktop ─────────────────────────────────────────────── */}
         <motion.div
-          animate={{
-            width:         scrolled ? '62%'   : '100%',
-            borderRadius:  scrolled ? '999px' : '0px',
-            marginTop:     scrolled ? '12px'  : '0px',
-            paddingLeft:   scrolled ? '22px'  : '24px',
-            paddingRight:  scrolled ? '22px'  : '24px',
-            paddingTop:    scrolled ? '10px'  : '16px',
-            paddingBottom: scrolled ? '10px'  : '16px',
-            backdropFilter:'blur(20px)',
-            background:    navBg,
-            boxShadow:     navShadow,
-          }}
-          transition={{ type: 'spring', stiffness: 220, damping: 40 }}
+          initial={{ opacity: 0, y: -8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
           className="hidden lg:flex items-center justify-between"
-          style={{ minWidth: scrolled ? 740 : 'unset' }}
+          style={{
+            width: scrolled ? '62%' : '100%',
+            borderRadius: scrolled ? 999 : 0,
+            marginTop: scrolled ? 12 : 0,
+            padding: scrolled ? '10px 22px' : '16px 24px',
+            minWidth: scrolled ? 740 : 'unset',
+            backdropFilter: 'blur(20px)',
+            background: navBg,
+            boxShadow: navShadow,
+          }}
         >
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2.5 shrink-0">
-            <ScalesLogo />
+            <ScalesLogo dark={false} />
             <span style={{ fontFamily: 'var(--font-display)', fontSize: '1.15rem',
-                           fontWeight: 600, color: '#0A0A0A', letterSpacing: '0.01em' }}>
-              Legal<span style={{ color: 'var(--color-saffron)' }}>Sahayak</span>
+                           fontWeight: 600, color: '#1A1410', letterSpacing: '0.01em' }}>
+              <span style={{ color: '#8B6914' }}>S</span>aarthi
             </span>
           </Link>
 
@@ -72,16 +71,17 @@ export function ResizableNavbar({ navItems, ctaLabel = 'Get Started', ctaTo = '/
                 <button
                   onClick={() => setAuthOpen(true)}
                   style={{ fontFamily: 'var(--font-sans)', fontSize: '0.83rem',
-                           color: 'rgba(40,30,10,0.60)', background: 'none', border: 'none',
+                           color: 'rgba(30,20,10,0.55)', background: 'none', border: 'none',
                            cursor: 'pointer', padding: '6px 10px' }}>
                   Sign In
                 </button>
                 <motion.button
                   onClick={() => setAuthOpen(true)}
-                  whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.97 }}
+                  whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}
+                  transition={{ duration: 0.15, ease: [0.22, 1, 0.36, 1] }}
                   className="rounded-full px-5 py-2 text-sm font-semibold text-white"
                   style={{ background: 'var(--color-saffron)', fontFamily: 'var(--font-sans)',
-                           boxShadow: '0 4px 14px rgba(230,92,0,0.3)', border: 'none', cursor: 'pointer' }}>
+                           boxShadow: '0 4px 14px rgba(230,92,0,0.35)', border: 'none', cursor: 'pointer' }}>
                   Sign Up
                 </motion.button>
               </>
@@ -91,25 +91,26 @@ export function ResizableNavbar({ navItems, ctaLabel = 'Get Started', ctaTo = '/
 
         {/* ── Mobile ──────────────────────────────────────────────── */}
         <motion.div
-          animate={{
-            width:         scrolled ? '92%'  : '100%',
-            borderRadius:  scrolled ? '16px' : '0px',
-            marginTop:     scrolled ? '10px' : '0px',
-            paddingLeft:   '16px', paddingRight: '16px',
-            paddingTop: '13px', paddingBottom: '13px',
-            backdropFilter: 'blur(20px)',
-            background:    scrolled ? 'rgba(251,248,242,0.97)' : 'rgba(251,248,242,0.90)',
-            boxShadow:     scrolled ? '0 0 0 1px rgba(0,0,0,0.08), 0 8px 40px rgba(0,0,0,0.10)' : 'none',
-          }}
-          transition={{ type: 'spring', stiffness: 220, damping: 40 }}
+          initial={{ opacity: 0, y: -8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
           className="flex lg:hidden flex-col"
+          style={{
+            width: scrolled ? '92%' : '100%',
+            borderRadius: scrolled ? 16 : 0,
+            marginTop: scrolled ? 10 : 0,
+            padding: '13px 16px',
+            backdropFilter: 'blur(20px)',
+            background: scrolled ? 'rgba(246,241,233,0.96)' : 'rgba(246,241,233,0.8)',
+            boxShadow: scrolled ? '0 0 0 1px rgba(0,0,0,0.07), 0 8px 40px rgba(0,0,0,0.09)' : 'none',
+          }}
         >
           <div className="flex items-center justify-between">
             <Link to="/" className="flex items-center gap-2">
-              <ScalesLogo size={14} />
+              <ScalesLogo size={14} dark={false} />
               <span style={{ fontFamily: 'var(--font-display)', fontSize: '1.1rem',
-                             fontWeight: 600, color: '#0A0A0A' }}>
-                Legal<span style={{ color: 'var(--color-saffron)' }}>Sahayak</span>
+                             fontWeight: 600, color: '#1A1410' }}>
+                <span style={{ color: '#8B6914' }}>S</span>aarthi
               </span>
             </Link>
             <div className="flex items-center gap-2">
@@ -473,14 +474,14 @@ function NavLinks({ items }) {
            className="relative px-4 py-2 rounded-full"
            style={{
              fontFamily: 'var(--font-sans)', fontSize: '0.83rem',
-             color: hovered === i ? '#0A0A0A' : 'rgba(40,30,10,0.50)',
+             color: hovered === i ? '#1A1410' : 'rgba(30,20,10,0.50)',
              transition: 'color 0.15s', textDecoration: 'none',
              zIndex: 1, pointerEvents: 'auto',
            }}>
           {hovered === i && (
             <motion.div layoutId="nav-pill"
               className="absolute inset-0 rounded-full"
-              style={{ background: 'rgba(0,0,0,0.06)' }}
+              style={{ background: 'rgba(30,20,10,0.06)' }}
               transition={{ type: 'spring', stiffness: 420, damping: 34 }} />
           )}
           <span style={{ position: 'relative', zIndex: 2 }}>{item.label}</span>
@@ -491,11 +492,11 @@ function NavLinks({ items }) {
 }
 
 /* ─── Scales logo SVG ───────────────────────────────────────────── */
-function ScalesLogo({ size = 18 }) {
+function ScalesLogo({ size = 18, dark = false }) {
   const h = Math.round(size * 22 / 18);
   return (
     <svg width={size} height={h} viewBox="0 0 18 22" fill="none"
-         stroke="var(--color-gold)" strokeWidth="1.4" strokeLinecap="round">
+         stroke={dark ? 'rgba(212,175,55,0.85)' : 'var(--color-gold)'} strokeWidth="1.4" strokeLinecap="round">
       <line x1="9" y1="1"  x2="9"  y2="21" />
       <line x1="2" y1="6"  x2="16" y2="6"  />
       <line x1="2" y1="6"  x2="2"  y2="13" />

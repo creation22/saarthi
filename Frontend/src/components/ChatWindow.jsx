@@ -18,7 +18,8 @@ function Citations({ citations }) {
       {citations.map((c, i) => (
         <motion.a
           key={i} href={c.url} target="_blank" rel="noopener noreferrer" title={c.snippet}
-          whileHover={{ scale: 1.03, y: -1 }} whileTap={{ scale: 0.97 }}
+          whileHover={{ scale: 1.02, y: -1 }} whileTap={{ scale: 0.97 }}
+          transition={{ duration: 0.15, ease: [0.22, 1, 0.36, 1] }}
           className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 font-mono-dm text-[10px] tracking-wide transition-colors"
           style={{
             border: '1px solid var(--color-glass-border)',
@@ -38,17 +39,31 @@ function Citations({ citations }) {
 /* ─── Voice playback ──────────────────────────────────────────── */
 function PlayButton({ text, language }) {
   const [state, setState] = useState('idle');
+  const audioRef = useRef(null);
+  const urlRef = useRef(null);
+
+  // Stop playback + free the object URL on unmount
+  useEffect(() => () => {
+    try { audioRef.current?.pause(); } catch { /* ignore */ }
+    if (urlRef.current) URL.revokeObjectURL(urlRef.current);
+  }, []);
+
   const handle = useCallback(async () => {
     if (state !== 'idle') return;
+    if (!text || !text.trim()) { toast.error('Nothing to play.'); return; }
     setState('loading');
     try {
-      const { data } = await speakText(text, language || 'hi-IN');
+      // Cap the spoken text — TTS APIs bill per character and reject novels
+      const clipped = text.length > 2000 ? text.slice(0, 2000) : text;
+      const { data } = await speakText(clipped, language || 'hi-IN');
       const url = URL.createObjectURL(new Blob([data], { type: 'audio/wav' }));
+      urlRef.current = url;
       const audio = new Audio(url);
+      audioRef.current = audio;
       setState('playing');
-      audio.onended = () => { setState('idle'); URL.revokeObjectURL(url); };
-      audio.onerror = () => { setState('idle'); toast.error('Audio playback failed.'); URL.revokeObjectURL(url); };
-      audio.play();
+      audio.onended = () => { setState('idle'); URL.revokeObjectURL(url); urlRef.current = null; };
+      audio.onerror = () => { setState('idle'); toast.error('Audio playback failed.'); URL.revokeObjectURL(url); urlRef.current = null; };
+      await audio.play();
     } catch { setState('idle'); toast.error('Could not fetch audio.'); }
   }, [text, language, state]);
 
@@ -62,8 +77,9 @@ function PlayButton({ text, language }) {
   return (
     <motion.button
       onClick={handle} disabled={state !== 'idle'}
-      whileHover={state === 'idle' ? { scale: 1.03 } : {}}
-      whileTap={state === 'idle' ? { scale: 0.96 } : {}}
+      whileHover={state === 'idle' ? { scale: 1.02 } : {}}
+      whileTap={state === 'idle' ? { scale: 0.97 } : {}}
+      transition={{ duration: 0.15, ease: [0.22, 1, 0.36, 1] }}
       className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 font-mono-dm text-[10px] tracking-wide transition-colors disabled:opacity-40"
       style={{
         border: `1px solid ${state === 'playing' ? 'var(--color-saffron)' : 'var(--color-glass-border)'}`,
@@ -111,7 +127,8 @@ function FeedbackButtons({ sessionId, messageIndex, guidance }) {
         { r: 'down', Icon: ThumbDownIcon, label: 'not helpful' },
       ].map(({ r, Icon, label }) => (
         <motion.button key={r} onClick={() => vote(r)} title={label}
-          whileHover={{ scale: 1.1, y: -1 }} whileTap={{ scale: 0.92 }}
+          whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}
+          transition={{ duration: 0.15, ease: [0.22, 1, 0.36, 1] }}
           className="flex h-7 w-7 items-center justify-center rounded-full transition-colors"
           style={{ border: '1px solid var(--color-glass-border)', background: 'var(--color-glass-bg)', color: 'var(--color-text-mid)' }}
         >
@@ -245,7 +262,7 @@ function EmptyState() {
       <motion.a
         href="/rights"
         initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.4 }}
-        whileHover={{ scale: 1.03, y: -1 }}
+        whileHover={{ scale: 1.02, y: -1 }}
         className="mt-1 rounded-full px-4 py-2 font-mono-dm text-xs tracking-wide transition-colors"
         style={{
           border: '1px solid var(--color-glass-border)',

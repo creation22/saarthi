@@ -135,8 +135,9 @@ function TopicCard({ topic, onSelect, delay }) {
         <motion.span
           className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl text-2xl"
           style={{ background: `${topic.accent}14` }}
-          whileHover={{ scale: 1.08 }}
-          transition={{ type: 'spring', stiffness: 400, damping: 20 }}
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.97 }}
+          transition={{ duration: 0.15, ease: [0.22, 1, 0.36, 1] }}
         >
           {topic.icon}
         </motion.span>
@@ -184,7 +185,7 @@ function TopicCard({ topic, onSelect, delay }) {
                   initial={{ opacity: 0, x: -10 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: i * 0.06, duration: 0.3 }}
-                  className="group flex w-full items-start gap-3 rounded-xl border px-4 py-3 text-left transition-all hover:shadow-sm"
+                  className="group flex w-full items-start gap-3 rounded-xl border px-4 py-3 text-left transition-[border-color,background-color,box-shadow,transform] duration-150 hover:shadow-sm"
                   style={{ borderColor: 'var(--color-border)', background: 'var(--color-ivory)' }}
                   whileHover={{ x: 4, borderColor: topic.accent + '60',
                                 transition: { type: 'spring', stiffness: 400, damping: 20 } }}
@@ -296,7 +297,7 @@ export default function KnowYourRights() {
             transition={{ duration: 0.6, delay: 0.35 }}
           >
             {/* Search */}
-            <div className="flex flex-1 items-center gap-3 rounded-2xl border px-4 py-3 transition-all focus-within:border-saffron"
+            <div className="flex flex-1 items-center gap-3 rounded-2xl border px-4 py-3 transition-colors duration-150 focus-within:border-saffron"
                  style={{ borderColor: 'var(--color-border)', background: 'var(--color-ivory)' }}>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
                    stroke="var(--color-ink-muted)" strokeWidth="2" strokeLinecap="round">
@@ -420,7 +421,7 @@ export default function KnowYourRights() {
               Open Document Wizard →
             </Link>
             <Link to="/chat"
-                  className="inline-flex items-center gap-2 rounded-full border px-6 py-3 text-xs transition-all hover:border-saffron"
+                  className="inline-flex items-center gap-2 rounded-full border px-6 py-3 text-xs transition-colors duration-150 hover:border-saffron"
                   style={{ borderColor: 'var(--color-border)', color: 'var(--color-ink)',
                            fontFamily: 'var(--font-mono)', textDecoration: 'none' }}>
               Ask a Custom Question

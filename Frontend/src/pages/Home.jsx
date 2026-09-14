@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth.js';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -111,20 +111,27 @@ export default function Home() {
   const [lastQuery, setLastQuery] = useState('');
   const [docOpen, setDocOpen]     = useState(false);
   const [searchParams]            = useSearchParams();
+  // Guard so React StrictMode's double-effect in dev doesn't submit ?q= twice
+  const autoSubmittedRef = useRef(false);
 
   useEffect(() => {
     const q = searchParams.get('q');
-    if (q && !messages.length) handleTextSubmit(q);
+    if (q && !messages.length && !autoSubmittedRef.current) {
+      autoSubmittedRef.current = true;
+      handleTextSubmit(q);
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleTextSubmit = async (text) => {
+    const clean = typeof text === 'string' ? text.trim() : '';
+    if (!clean || loading) return;
     setLoading(true);
-    setLastQuery(text);
-    setMessages(prev => [...prev, { role: 'user', content: text, language }]);
+    setLastQuery(clean);
+    setMessages(prev => [...prev, { role: 'user', content: clean, language }]);
     try {
       const stateParam = state === 'Any State' ? '' : state;
-      const { data } = await sendTextQuery(text, sessionId, language, false, stateParam);
+      const { data } = await sendTextQuery(clean, sessionId, language, false, stateParam);
       setMessages(prev => [...prev, { role: 'assistant', content: data.guidance, citations: data.citations ?? [] }]);
     } catch {
       toast.error('Something went wrong. Please try again.');
@@ -135,6 +142,7 @@ export default function Home() {
   };
 
   const handleVoiceSubmit = async (blob) => {
+    if (!blob || loading) return;
     setLoading(true);
     toast('Processing voice input…');
     try {
@@ -240,7 +248,8 @@ export default function Home() {
               : <NavPill to="/login">Sign In</NavPill>
             }
             <motion.button
-              whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
+              whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}
+              transition={{ duration: 0.15, ease: [0.22, 1, 0.36, 1] }}
               onClick={handleReset}
               className="inline-flex items-center gap-1.5"
               style={{

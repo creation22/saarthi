@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { analyzeContractFile } from '../services/api.js';
@@ -30,11 +30,12 @@ function fmt(bytes) {
 /* ─── Risk gauge (SVG arc) ────────────────────────────────────── */
 function RiskGauge({ score, level }) {
   const cfg   = RISK_CONFIG[level] ?? RISK_CONFIG.MEDIUM;
+  const safeScore = Number.isFinite(Number(score)) ? Math.min(10, Math.max(0, Math.round(Number(score)))) : 0;
   const r     = 52;
   const cx    = 64;
   const cy    = 64;
   const circ  = 2 * Math.PI * r;
-  const pct   = score / 10;
+  const pct   = safeScore / 10;
   const dash  = circ * pct;
 
   return (
@@ -56,7 +57,7 @@ function RiskGauge({ score, level }) {
         <text x={cx} y={cy - 6} textAnchor="middle"
           style={{ fill: cfg.color, fontSize: 28, fontWeight: 700,
                    fontFamily: 'var(--font-display)' }}>
-          {score}
+          {safeScore}
         </text>
         <text x={cx} y={cy + 14} textAnchor="middle"
           style={{ fill: 'var(--color-text-soft)', fontSize: 10,
@@ -76,7 +77,7 @@ function RiskGauge({ score, level }) {
         </div>
         <p style={{ fontFamily: 'var(--font-mono)', fontSize: '0.65rem',
                     color: 'var(--color-text-soft)', lineHeight: 1.5 }}>
-          Risk score {score}/10<br/>
+          Risk score {safeScore}/10<br/>
           Range: {cfg.range}
         </p>
       </div>
@@ -369,10 +370,11 @@ function AnalysingState({ filename }) {
   ];
   const [step, setStep] = useState(0);
 
-  useState(() => {
+  useEffect(() => {
     const id = setInterval(() => setStep(s => Math.min(s + 1, steps.length - 1)), 2800);
     return () => clearInterval(id);
-  });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <motion.div
@@ -463,7 +465,23 @@ function AnalysingState({ filename }) {
 
 /* ─── Results view ────────────────────────────────────────────── */
 function AnalysisResults({ result, onReset }) {
-  const { filename, analysis: a } = result;
+  const { filename, analysis: a } = result ?? {};
+  if (!a || typeof a !== 'object') {
+    return (
+      <div style={{ borderRadius: 16, background: 'rgba(255,255,255,0.75)',
+                    border: '1px solid rgba(0,0,0,0.07)', padding: '32px', textAlign: 'center' }}>
+        <p style={{ fontFamily: 'var(--font-sans)', fontSize: '0.9rem', color: 'var(--color-text-mid)' }}>
+          The analysis response was incomplete. Please try again.
+        </p>
+        <button onClick={onReset}
+          style={{ marginTop: 16, padding: '8px 18px', borderRadius: 999, cursor: 'pointer',
+                   border: '1px solid rgba(0,0,0,0.09)', background: '#fff',
+                   fontFamily: 'var(--font-mono)', fontSize: '0.72rem', color: 'var(--color-text-soft)' }}>
+          ↩ Analyse New Document
+        </button>
+      </div>
+    );
+  }
   const risk = RISK_CONFIG[a.riskLevel] ?? RISK_CONFIG.MEDIUM;
 
   const cardStyle = {
@@ -507,7 +525,7 @@ function AnalysisResults({ result, onReset }) {
             marginTop: 2, fontFamily: 'var(--font-mono)', fontSize: '0.62rem',
             color: 'var(--color-text-dim)',
           }}>
-            {result.charCount.toLocaleString()} characters analysed
+            {typeof result.charCount === 'number' ? `${result.charCount.toLocaleString()} characters analysed` : 'Document analysed'}
           </p>
         </div>
 
@@ -901,8 +919,9 @@ export default function ContractAnalyzer() {
 
               <div style={{ marginTop: 20, textAlign: 'center' }}>
                 <motion.button
-                  whileHover={file ? { scale: 1.03 } : {}}
+                  whileHover={file ? { scale: 1.02 } : {}}
                   whileTap={file ? { scale: 0.97 } : {}}
+                  transition={{ duration: 0.15, ease: [0.22, 1, 0.36, 1] }}
                   onClick={handleAnalyze}
                   disabled={!file}
                   style={{
