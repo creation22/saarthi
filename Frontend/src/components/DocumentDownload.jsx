@@ -26,16 +26,22 @@ export default function DocumentDownload({ query }) {
   const [loading, setLoading] = useState(false);
 
   const handleGenerate = async () => {
-    if (!query) {
+    if (!query || !query.trim()) {
       toast.error('Ask a legal question first so the document has context.');
       return;
     }
     setLoading(true);
     try {
       const res = await generateDocument(query, docType, format);
-      const url = URL.createObjectURL(new Blob([res.data]));
+      const mime = format === 'docx'
+        ? 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+        : 'application/pdf';
+      const url = URL.createObjectURL(new Blob([res.data], { type: mime }));
       const a = document.createElement('a');
-      a.href = url; a.download = `${docType}.${format}`; a.click();
+      a.href = url; a.download = `${docType}.${format}`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
       URL.revokeObjectURL(url);
       toast.success('Document downloaded!');
     } catch {

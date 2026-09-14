@@ -1,16 +1,21 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import ReactMarkdown from 'react-markdown';
 import { useSession } from '../hooks/useSession.js';
 import { getSessionHistory } from '../services/api.js';
 
 export default function History() {
-  const { sessionId } = useSession();
+  const { sessionId: currentSessionId } = useSession();
+  const [searchParams] = useSearchParams();
+  // Matter pages link here with ?session=<id> — honour it, else current session
+  const sessionId = searchParams.get('session') || currentSessionId;
   const [messages, setMessages] = useState([]);
   const [loading, setLoading]   = useState(true);
   const [error, setError]       = useState(null);
 
   useEffect(() => {
+    setLoading(true);
+    setError(null);
     getSessionHistory(sessionId)
       .then(({ data }) => setMessages(data.messages || []))
       .catch(() => setError('No history found for this session.'))

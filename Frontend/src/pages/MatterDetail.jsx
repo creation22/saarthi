@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import toast from 'react-hot-toast';
@@ -34,18 +34,22 @@ export default function MatterDetail() {
       .finally(() => setLoading(false));
   }, [id]);
 
-  // Debounced notes save
+  // Debounced notes save — skipped until the user actually edits
+  const notesDirtyRef = useRef(false);
   useEffect(() => {
-    if (!matter) return;
+    if (!matter || !notesDirtyRef.current) return;
+    let cancelled = false;
+    setNotesSaving(true);
     const t = setTimeout(async () => {
-      setNotesSaving(true);
       try {
         await updateMatter(id, { notes });
+      } catch {
+        toast.error('Failed to save notes');
       } finally {
-        setNotesSaving(false);
+        if (!cancelled) setNotesSaving(false);
       }
     }, 600);
-    return () => clearTimeout(t);
+    return () => { cancelled = true; clearTimeout(t); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [notes]);
 
@@ -313,7 +317,7 @@ export default function MatterDetail() {
                                color: 'var(--color-text-dim)' }}>Saving…</span>
               )}
             </div>
-            <textarea value={notes} onChange={e => setNotes(e.target.value)}
+            <textarea value={notes} onChange={e => { notesDirtyRef.current = true; setNotes(e.target.value); }}
               placeholder="Add notes, reminders, key facts…"
               rows={14}
               style={{ width: '100%', background: 'rgba(255,255,255,0.75)',

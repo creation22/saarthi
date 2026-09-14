@@ -13,7 +13,7 @@ import LandingCTA         from '../components/landing/LandingCTA.jsx';
 
 export default function Landing() {
   return (
-    <div style={{ background: 'var(--color-ivory)',
+    <div style={{ background: '#F6F1E9',
                   fontFamily: 'var(--font-sans)', overflowX: 'hidden' }}>
 
       <ResizableNavbar

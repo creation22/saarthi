@@ -12,6 +12,19 @@ api.interceptors.request.use(config => {
   return config;
 });
 
+// A 401 means the stored token is expired/revoked — drop it so later
+// requests fall back to anonymous instead of failing in a loop.
+// (Callers still surface their own error toast on the failed request.)
+api.interceptors.response.use(
+  response => response,
+  error => {
+    if (error?.response?.status === 401 && !error.config?.url?.includes('/auth/')) {
+      localStorage.removeItem('ls_token');
+    }
+    return Promise.reject(error);
+  }
+);
+
 /**
  * Send a text legal query.
  * @param {string} text
