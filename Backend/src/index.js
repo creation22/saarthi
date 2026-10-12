@@ -19,6 +19,9 @@ if (!process.env.JWT_SECRET) {
   console.error('FATAL: JWT_SECRET is not set. Add it to Backend/.env (see .env.example).');
   process.exit(1);
 }
+if (!process.env.CLERK_SECRET_KEY) {
+  console.warn('WARNING: CLERK_SECRET_KEY is not set. Signed-in routes (matters, case tracker) will reject every request.');
+}
 
 const app = express();
 
