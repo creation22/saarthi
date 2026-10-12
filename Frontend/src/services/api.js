@@ -6,25 +6,20 @@ const api = axios.create({
   timeout: 60000,
 });
 
-// Attach Bearer token to every request when the user is logged in
-api.interceptors.request.use(config => {
-  const token = localStorage.getItem('ls_token');
+// Set by AuthContext once Clerk has loaded; resolves to a session token, or null when signed out.
+let getAuthToken = null;
+export function setAuthTokenGetter(getter) {
+  getAuthToken = getter;
+}
+
+// Attach Bearer token to every request when the user is logged in.
+// Clerk tokens live about a minute, so ask for one per request instead of storing it.
+// If Clerk can't issue one, send the request anonymously rather than failing it here.
+api.interceptors.request.use(async config => {
+  const token = await getAuthToken?.().catch(() => null);
   if (token) config.headers.Authorization = `Bearer ${token}`;
   return config;
 });
-
-// A 401 means the stored token is expired/revoked — drop it so later
-// requests fall back to anonymous instead of failing in a loop.
-// (Callers still surface their own error toast on the failed request.)
-api.interceptors.response.use(
-  response => response,
-  error => {
-    if (error?.response?.status === 401 && !error.config?.url?.includes('/auth/')) {
-      localStorage.removeItem('ls_token');
-    }
-    return Promise.reject(error);
-  }
-);
 
 /**
  * Send a text legal query.

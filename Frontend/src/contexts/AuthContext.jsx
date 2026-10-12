@@ -1,24 +1,23 @@
-import { createContext, useContext, useEffect } from 'react';
+import { createContext, useContext, useLayoutEffect } from 'react';
 import { useUser, useAuth as useClerkAuth } from '@clerk/react';
+import { setAuthTokenGetter } from '../services/api.js';
 
 export const AuthContext = createContext(null);
 
-const TOKEN_KEY = 'ls_token';
-
 /**
- * Bridges Clerk session to the app's existing useAuth() API.
- * Backend matters/tracker still expect `ls_token` from /api/auth — wire Clerk JWT verification on the backend separately.
+ * Bridges Clerk session to the app's existing useAuth() API,
+ * and hands the API client a way to get the Clerk session token the backend verifies.
  */
 function AuthBridge({ children }) {
   const { user, isLoaded } = useUser();
   const { isSignedIn, signOut, getToken: clerkGetToken } = useClerkAuth();
 
-  useEffect(() => {
-    if (!isLoaded) return;
-    if (!isSignedIn) {
-      localStorage.removeItem(TOKEN_KEY);
-    }
-  }, [isLoaded, isSignedIn]);
+  // Layout effect: a protected page can mount in the same commit that Clerk finishes
+  // loading, and its useEffect fetch would otherwise run before this and go out unauthenticated.
+  // Not registered before load, because getToken() waits for Clerk and would stall anonymous requests.
+  useLayoutEffect(() => {
+    setAuthTokenGetter(isLoaded ? clerkGetToken : null);
+  }, [isLoaded, clerkGetToken]);
 
   const userDisplay = user
     ? {
@@ -33,7 +32,6 @@ function AuthBridge({ children }) {
     isLoggedIn: !!isSignedIn,
     loading: !isLoaded,
     async logout() {
-      localStorage.removeItem(TOKEN_KEY);
       await signOut();
     },
     async getToken() {

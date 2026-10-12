@@ -13,6 +13,7 @@
   "type": "module",
   "dependencies": {
     "@anthropic-ai/sdk": "^0.88.0",
+    "@clerk/backend": "^3.23.2",
     "@langchain/core": "^1.1.39",
     "@langchain/openai": "^1.4.4",
     "@langchain/pinecone": "^1.0.1",
