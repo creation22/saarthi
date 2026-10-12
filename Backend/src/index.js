@@ -32,6 +32,8 @@ app.use(cors({
   origin(origin, cb) {
     // Allow same-origin / non-browser clients with no Origin header
     if (!origin || allowedOrigins.includes(origin)) return cb(null, true);
+    // Vercel production + preview deployments
+    if (/^https:\/\/([a-z0-9-]+\.)*vercel\.app$/i.test(origin)) return cb(null, true);
     cb(new Error('CORS: origin not allowed'));
   },
 }));
