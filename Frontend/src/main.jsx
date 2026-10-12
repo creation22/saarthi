@@ -3,8 +3,9 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import './index.css';
 import App from './App.jsx';
+import { CLERK_PUBLISHABLE_KEY } from './config/env.js';
 
-const publishableKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY?.trim();
+const publishableKey = CLERK_PUBLISHABLE_KEY;
 
 function MissingClerkConfig() {
   return (
@@ -23,7 +24,7 @@ function MissingClerkConfig() {
       <div style={{ maxWidth: 480, lineHeight: 1.6 }}>
         <h1 style={{ fontSize: '1.25rem', marginBottom: 12 }}>Clerk is not configured</h1>
         <p style={{ marginBottom: 12 }}>
-          Set <code>VITE_CLERK_PUBLISHABLE_KEY</code> before running or building the app.
+          Set <code>CLERK_PUBLISHABLE_KEY</code> in <code>.env.local</code> or your host&apos;s env, then rebuild.
         </p>
         <ol style={{ paddingLeft: 20, margin: 0 }}>
           <li>
