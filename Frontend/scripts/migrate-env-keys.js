@@ -24,7 +24,7 @@ const publishable =
 const secret = merged.CLERK_SECRET_KEY || '';
 
 const envContent = `# =============================================================================
-# Legal Sahayak — Frontend (local, gitignored)
+# MySaarthi — Frontend (local, gitignored)
 # =============================================================================
 
 # --- Backend API ---

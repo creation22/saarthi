@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Label } from './landingShared.jsx';
 
 const FAQS = [
-  { q: 'Is LegalSahayak really free?',
+  { q: 'Is MySaarthi really free?',
     a: 'Yes, completely free. No signup or payment required for the chat, document generator, and contract analyzer. Creating an account (also free) unlocks the case tracker and matter dashboard.' },
   { q: 'What is the Case Tracker and how does it work?',
     a: 'Enter your CNR (Case Number Reference) — a 16-character code on any court notice — and we fetch your case status, hearing history, and next hearing date directly from the eCourts portal. Cases are refreshed automatically every 6 hours.' },
@@ -12,7 +12,7 @@ const FAQS = [
   { q: 'How do I find free legal help near me?',
     a: 'Visit /lawyers. Every district in India has a District Legal Services Authority (DLSA) that provides completely free legal aid, Lok Adalat sessions, and mediation. Eligibility includes SC/ST, women, children, persons with disabilities, and anyone earning below ₹3 lakh per year. You can also call the NALSA national helpline at 15100 from anywhere in India, 24/7.' },
   { q: 'Can I use this in court?',
-    a: 'LegalSahayak provides general legal information, not formal legal advice. For court proceedings, consult a qualified advocate or your nearest Legal Services Authority (free via DLSA).' },
+    a: 'MySaarthi provides general legal information, not formal legal advice. For court proceedings, consult a qualified advocate or your nearest Legal Services Authority (free via DLSA).' },
   { q: 'How accurate are the answers?',
     a: 'Every response is grounded in actual statute text retrieved via semantic search across 22+ Indian Acts. We cite the specific sections used. For consequential decisions, always verify with a qualified professional.' },
   { q: 'Which languages does it support?',

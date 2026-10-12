@@ -265,7 +265,7 @@ export default function LandingNewFeatures() {
           <motion.p variants={fadeUp}
             style={{ fontFamily: 'var(--font-sans)', fontSize: '1rem', lineHeight: 1.7,
                      color: 'var(--color-ink-muted)', maxWidth: 540, marginBottom: '3.5rem' }}>
-            LegalSahayak now lets you track court cases live, manage your legal matters in a personal dashboard,
+            MySaarthi now lets you track court cases live, manage your legal matters in a personal dashboard,
             and find free legal aid anywhere in India.
           </motion.p>
         </motion.div>

@@ -44,7 +44,7 @@ export default function Register() {
               color: 'var(--color-ink)',
             }}
           >
-            Legal<span style={{ color: 'var(--color-saffron)' }}>Sahayak</span>
+            My<span style={{ color: 'var(--color-saffron)' }}>Saarthi</span>
           </span>
         </Link>
 

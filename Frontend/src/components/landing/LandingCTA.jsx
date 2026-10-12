@@ -155,7 +155,7 @@ export default function LandingCTA() {
                 </svg>
                 <span style={{ fontFamily: 'var(--font-display)', fontSize: '1.05rem',
                                fontWeight: 600, color: 'var(--color-ink)' }}>
-                  Legal<span style={{ color: 'var(--color-saffron)' }}>Sahayak</span>
+                  My<span style={{ color: 'var(--color-saffron)' }}>Saarthi</span>
                 </span>
               </Link>
               <p style={{ fontFamily: 'var(--font-sans)', fontSize: '0.82rem', lineHeight: 1.7,
@@ -216,7 +216,7 @@ export default function LandingCTA() {
                         justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
             <p style={{ fontFamily: 'var(--font-mono)', fontSize: '0.58rem',
                         color: 'rgba(0,0,0,0.32)', letterSpacing: '0.06em' }}>
-              © {new Date().getFullYear()} LegalSahayak · General information only · Not a substitute for legal advice
+              © {new Date().getFullYear()} MySaarthi · General information only · Not a substitute for legal advice
             </p>
             <div style={{ display: 'flex', gap: 20 }}>
               {[{ l: 'Privacy', to: '/' }, { l: 'Terms', to: '/' }, { l: 'Disclaimer', to: '/' }].map(({ l, to }) => (

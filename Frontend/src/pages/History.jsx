@@ -33,7 +33,7 @@ export default function History() {
             <Link to="/" className="flex items-center gap-2 transition-opacity hover:opacity-80">
               <span style={{ color: 'var(--color-gold)' }}>⚖</span>
               <span style={{ fontFamily: 'var(--font-display)', fontSize: '1.15rem', fontWeight: 600, color: 'var(--color-ink)' }}>
-                Legal<span style={{ color: 'var(--color-saffron)' }}>Sahayak</span>
+                My<span style={{ color: 'var(--color-saffron)' }}>Saarthi</span>
               </span>
             </Link>
             <span className="font-mono-dm text-xs" style={{ color: 'var(--color-border)' }}>|</span>
@@ -128,7 +128,7 @@ export default function History() {
 
       <footer className="border-t px-5 py-8 text-center font-mono-dm text-xs"
               style={{ borderColor: 'var(--color-border)', color: 'var(--color-ink-muted)', opacity: 0.6 }}>
-        Legal Sahayak · Session history is stored locally and on your device only.
+        MySaarthi · Session history is stored locally and on your device only.
       </footer>
     </div>
   );

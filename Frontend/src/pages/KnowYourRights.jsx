@@ -241,7 +241,7 @@ export default function KnowYourRights() {
             <span style={{ color: 'var(--color-gold)' }}>⚖</span>
             <span style={{ fontFamily: 'var(--font-display)', fontSize: '1.15rem',
                            fontWeight: 600, color: 'var(--color-ink)' }}>
-              Legal<span style={{ color: 'var(--color-saffron)' }}>Sahayak</span>
+              My<span style={{ color: 'var(--color-saffron)' }}>Saarthi</span>
             </span>
           </Link>
           <div className="flex items-center gap-2">

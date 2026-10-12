@@ -1,5 +1,5 @@
 /**
- * LegalSahayak — Premium SVG Icon Library
+ * MySaarthi — Premium SVG Icon Library
  * All icons use currentColor and accept size/className props.
  * Animated variants use Framer Motion path-draw or spring effects.
  */

@@ -231,7 +231,7 @@ export default function Home() {
               <line x1="6" y1="21" x2="12" y2="21" />
             </svg>
             <span style={{ fontFamily: 'var(--font-display)', fontSize: '1.12rem', fontWeight: 600, color: 'var(--color-ink)' }}>
-              Legal<span style={{ color: 'var(--color-saffron)' }}>Sahayak</span>
+              My<span style={{ color: 'var(--color-saffron)' }}>Saarthi</span>
             </span>
           </Link>
 

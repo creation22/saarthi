@@ -211,7 +211,7 @@ export default function Dashboard() {
           </svg>
           <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600,
                          color: 'var(--color-ink)', fontSize: '0.95rem' }}>
-            Legal<span style={{ color: 'var(--color-saffron)' }}>Sahayak</span>
+            My<span style={{ color: 'var(--color-saffron)' }}>Saarthi</span>
           </span>
         </Link>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>

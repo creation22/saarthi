@@ -50,7 +50,7 @@ export default function LandingChatDemo() {
                 <line x1="6" y1="21" x2="12" y2="21"/>
               </svg>
               <span style={{ fontFamily: 'var(--font-display)', fontSize: '0.92rem', fontWeight: 600, color: '#1A1A1A' }}>
-                Legal<span style={{ color: '#E07848' }}>Sahayak</span>
+                My<span style={{ color: '#E07848' }}>Saarthi</span>
               </span>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>

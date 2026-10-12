@@ -1,4 +1,4 @@
-# Saarthi
+# MySaarthi
 
 **Free, multilingual legal AI for every Indian.**  
 Ask legal questions by voice or text in 12 Indian languages. Get statute-grounded answers, generate legal documents, and analyze contracts — instantly, no sign-up required.
@@ -149,4 +149,4 @@ IPC 1860 · CrPC 1973 · Bharatiya Nyaya Sanhita 2023 · Consumer Protection Act
 
 ## Disclaimer
 
-LegalSahayak provides **general legal information only**. It is not a substitute for advice from a qualified advocate. For court proceedings or consequential legal decisions, consult a licensed lawyer or your nearest District Legal Services Authority (DLSA).
+MySaarthi provides **general legal information only**. It is not a substitute for advice from a qualified advocate. For court proceedings or consequential legal decisions, consult a licensed lawyer or your nearest District Legal Services Authority (DLSA).

@@ -101,7 +101,7 @@ async function complete({ system, user, maxTokens, json = false }) {
   return extractAnthropicText(message);
 }
 
-const SYSTEM_PROMPT = `You are an expert Indian legal assistant (Saarthi / LegalSahayak). The user may ask anything — you always give a direct, helpful answer oriented to Indian law.
+const SYSTEM_PROMPT = `You are an expert Indian legal assistant for MySaarthi. The user may ask anything — you always give a direct, helpful answer oriented to Indian law.
 
 Rules:
 1. Answer the user's question first. Do not refuse because retrieved documents are incomplete or off-topic.

@@ -16,7 +16,7 @@ const DATA_DIR = path.resolve(__dirname, '../data');
 const MANIFEST = path.resolve(__dirname, 'corpus.manifest.json');
 
 async function fetchText(url) {
-  const res = await fetch(url, { headers: { 'User-Agent': 'SaarthiCorpusFetcher/1.0' } });
+  const res = await fetch(url, { headers: { 'User-Agent': 'MySaarthiCorpusFetcher/1.0' } });
   if (!res.ok) throw new Error(`HTTP ${res.status} for ${url}`);
   return res.text();
 }

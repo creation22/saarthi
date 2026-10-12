@@ -44,9 +44,9 @@ export function ResizableNavbar({ navItems, ctaLabel = 'Get Started', ctaTo = '/
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2.5 shrink-0">
             <ScalesLogo dark={false} />
-            <span style={{ fontFamily: 'var(--font-display)', fontSize: '1.15rem',
+              <span style={{ fontFamily: 'var(--font-display)', fontSize: '1.15rem',
                            fontWeight: 600, color: '#1A1410', letterSpacing: '0.01em' }}>
-              <span style={{ color: '#8B6914' }}>S</span>aarthi
+              My<span style={{ color: '#8B6914' }}>Saarthi</span>
             </span>
           </Link>
 
@@ -128,7 +128,7 @@ export function ResizableNavbar({ navItems, ctaLabel = 'Get Started', ctaTo = '/
               <ScalesLogo size={14} dark={false} />
               <span style={{ fontFamily: 'var(--font-display)', fontSize: '1.1rem',
                              fontWeight: 600, color: '#1A1410' }}>
-                <span style={{ color: '#8B6914' }}>S</span>aarthi
+                My<span style={{ color: '#8B6914' }}>Saarthi</span>
               </span>
             </Link>
             <div className="flex items-center gap-2">

@@ -3,18 +3,18 @@ import { motion, useInView } from 'framer-motion';
 import { fadeUp, stagger, Label } from './landingShared.jsx';
 
 const CMP_ROWS = [
-  { feature: 'Cost',                  sahayak: 'Free',            lawyer: '₹2,000–₹50,000+',  gpt: 'Free / Subscription' },
-  { feature: 'Indian Languages',      sahayak: '11+',             lawyer: 'Limited',           gpt: 'English primarily'   },
-  { feature: 'Statute-grounded',      sahayak: true,              lawyer: true,                gpt: false                 },
-  { feature: 'Available 24/7',        sahayak: true,              lawyer: false,               gpt: true                  },
-  { feature: 'Response time',         sahayak: '< 5 seconds',     lawyer: 'Days to weeks',     gpt: '< 10 seconds'        },
-  { feature: 'Document generation',   sahayak: true,              lawyer: 'Costly',            gpt: 'Generic only'        },
-  { feature: 'Contract analysis',     sahayak: true,              lawyer: true,                gpt: false                 },
-  { feature: 'Voice input',           sahayak: true,              lawyer: false,               gpt: false                 },
-  { feature: 'Court case tracker',    sahayak: true,              lawyer: false,               gpt: false                 },
-  { feature: 'Legal aid directory',   sahayak: true,              lawyer: false,               gpt: false                 },
-  { feature: 'Matter dashboard',      sahayak: true,              lawyer: 'Expensive software', gpt: false                },
-  { feature: 'Hallucination risk',    sahayak: 'None (RAG)',      lawyer: 'None',              gpt: 'High'                },
+  { feature: 'Cost',                  mysaarthi: 'Free',            lawyer: '₹2,000–₹50,000+',  gpt: 'Free / Subscription' },
+  { feature: 'Indian Languages',      mysaarthi: '11+',             lawyer: 'Limited',           gpt: 'English primarily'   },
+  { feature: 'Statute-grounded',      mysaarthi: true,              lawyer: true,                gpt: false                 },
+  { feature: 'Available 24/7',        mysaarthi: true,              lawyer: false,               gpt: true                  },
+  { feature: 'Response time',         mysaarthi: '< 5 seconds',     lawyer: 'Days to weeks',     gpt: '< 10 seconds'        },
+  { feature: 'Document generation',   mysaarthi: true,              lawyer: 'Costly',            gpt: 'Generic only'        },
+  { feature: 'Contract analysis',     mysaarthi: true,              lawyer: true,                gpt: false                 },
+  { feature: 'Voice input',           mysaarthi: true,              lawyer: false,               gpt: false                 },
+  { feature: 'Court case tracker',    mysaarthi: true,              lawyer: false,               gpt: false                 },
+  { feature: 'Legal aid directory',   mysaarthi: true,              lawyer: false,               gpt: false                 },
+  { feature: 'Matter dashboard',      mysaarthi: true,              lawyer: 'Expensive software', gpt: false                },
+  { feature: 'Hallucination risk',    mysaarthi: 'None (RAG)',      lawyer: 'None',              gpt: 'High'                },
 ];
 
 function CmpCell({ val, highlight }) {
@@ -69,7 +69,7 @@ export default function LandingComparison() {
 
       <div className="mx-auto max-w-5xl relative">
         <motion.div initial="hidden" animate={inView ? 'visible' : 'hidden'} variants={stagger(0)}>
-          <motion.div variants={fadeUp}><Label>Why LegalSahayak</Label></motion.div>
+          <motion.div variants={fadeUp}><Label>Why MySaarthi</Label></motion.div>
           <motion.h2 variants={fadeUp}
             style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(2rem,5vw,3.25rem)',
                      fontWeight: 700, color: 'var(--color-ink)', lineHeight: 1.12, marginBottom: '2.5rem' }}>
@@ -100,7 +100,7 @@ export default function LandingComparison() {
                   background: 'var(--color-glass-bg-2)', width: '28%',
                 }}>Feature</th>
 
-                {/* LegalSahayak — highlighted */}
+                {/* MySaarthi — highlighted */}
                 <th style={{
                   padding: '1rem 1.1rem', textAlign: 'center',
                   fontFamily: 'var(--font-display)', fontSize: '1rem', fontWeight: 600,
@@ -118,7 +118,7 @@ export default function LandingComparison() {
                     borderRadius: '0 0 10px 10px', textTransform: 'uppercase',
                     boxShadow: '0 4px 14px rgba(230,92,0,0.3)',
                   }}>Recommended</span>
-                  LegalSahayak
+                  MySaarthi
                 </th>
 
                 {/* Others */}
@@ -135,7 +135,7 @@ export default function LandingComparison() {
               </tr>
             </thead>
             <tbody>
-              {CMP_ROWS.map(({ feature, sahayak, lawyer, gpt }, i) => (
+              {CMP_ROWS.map(({ feature, mysaarthi, lawyer, gpt }, i) => (
                 <motion.tr key={feature}
                   style={{ borderBottom: i < CMP_ROWS.length - 1 ? '1px solid var(--color-glass-border-2)' : 'none' }}
                   initial={{ opacity: 0, x: -14 }} animate={inView ? { opacity: 1, x: 0 } : {}}
@@ -148,7 +148,7 @@ export default function LandingComparison() {
                     background: 'var(--color-glass-bg-2)',
                     fontWeight: 500,
                   }}>{feature}</td>
-                  <CmpCell val={sahayak} highlight />
+                  <CmpCell val={mysaarthi} highlight />
                   <CmpCell val={lawyer}  highlight={false} />
                   <CmpCell val={gpt}     highlight={false} />
                 </motion.tr>
