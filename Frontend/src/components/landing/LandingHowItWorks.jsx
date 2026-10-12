@@ -1,204 +1,101 @@
-import { useRef } from 'react';
-import { motion, useInView } from 'framer-motion';
-import { fadeUp, stagger, Label, ICONS } from './landingShared.jsx';
+import { Reveal } from './landingShared.jsx';
+import { useLive } from './landingMotion.js';
+
+/* ─── Step drawings ───────────────────────────────────────────────
+   Line art on a 160×104 grid. Strokes marked .lp-draw trace themselves
+   when the row comes into view; --i orders them. */
+function SpeakArt() {
+  return (
+    <svg viewBox="0 0 160 104" fill="none">
+      <path className="lp-draw lp-art__ink" pathLength="1" style={{ '--i': 0 }}
+            d="M22 14h92a10 10 0 0 1 10 10v36a10 10 0 0 1-10 10H62L44 86V70H22a10 10 0 0 1-10-10V24a10 10 0 0 1 10-10z" />
+      <text className="lp-art__glyph" x="34" y="51" style={{ '--i': 4 }}>क</text>
+      <text className="lp-art__glyph lp-art__glyph--latin" x="60" y="51" style={{ '--i': 5 }}>A</text>
+      <text className="lp-art__glyph" x="84" y="51" style={{ '--i': 6 }}>த</text>
+      <g className="lp-art__accent">
+        <path className="lp-draw" pathLength="1" style={{ '--i': 8 }}  d="M134 32a14 14 0 0 1 0 20" />
+        <path className="lp-draw" pathLength="1" style={{ '--i': 9 }}  d="M141 25a24 24 0 0 1 0 34" />
+        <path className="lp-draw" pathLength="1" style={{ '--i': 10 }} d="M148 18a34 34 0 0 1 0 48" />
+      </g>
+    </svg>
+  );
+}
+
+function SearchArt() {
+  return (
+    <svg viewBox="0 0 160 104" fill="none">
+      <path className="lp-draw lp-art__ink" pathLength="1" style={{ '--i': 0 }}
+            d="M80 22C66 14 46 12 26 16v66c20-4 40-2 54 6 14-8 34-10 54-6V16c-20-4-40-2-54 6zM80 22v66" />
+      <g className="lp-art__lines">
+        <path d="M36 32h32M36 44h32M36 68h26M92 32h32M92 56h32M92 68h22" />
+      </g>
+      <rect className="lp-art__hit" x="90" y="39" width="36" height="9" rx="2" style={{ '--i': 6 }} />
+      <rect className="lp-art__hit" x="34" y="51" width="30" height="9" rx="2" style={{ '--i': 8 }} />
+      <g className="lp-art__lens">
+        <circle className="lp-art__accent" cx="104" cy="44" r="15" />
+        <path className="lp-art__accent" d="m115 55 12 12" />
+      </g>
+    </svg>
+  );
+}
+
+function AnswerArt() {
+  return (
+    <svg viewBox="0 0 160 104" fill="none">
+      <rect className="lp-draw lp-art__ink" pathLength="1" style={{ '--i': 0 }} x="18" y="10" width="124" height="84" rx="6" />
+      <path className="lp-art__margin" d="M104 10v84" />
+      <g className="lp-art__lines">
+        <path d="M50 30h44M50 52h38M50 74h44M112 30h20M112 52h16M112 74h20" />
+      </g>
+      {[30, 52, 74].map((y, i) => (
+        <g key={y}>
+          <circle className="lp-art__tick-bg" cx="34" cy={y} r="7.5" style={{ '--i': 4 + i * 2 }} />
+          <path className="lp-draw lp-art__tick" pathLength="1" style={{ '--i': 5 + i * 2 }}
+                d={`m30.5 ${y + 0.5} 2.5 2.5 4.5-5`} />
+        </g>
+      ))}
+    </svg>
+  );
+}
 
 const STEPS = [
   {
-    num:    '01',
-    iconKey: 'mic',
-    label:  'Ask by Voice or Text',
-    sub:    'Speak or type in Hindi, Tamil, Bengali, English, or 7 more Indian languages. Sarvam Saarika transcribes speech in real time.',
-    accent: '#E07848',
-    tag:    'Sarvam Saarika STT',
+    art: <SpeakArt />,
+    title: 'Ask in your own words',
+    body: 'Type or speak. Hindi, Tamil, Bengali, English and seven more languages are understood.',
   },
   {
-    num:    '02',
-    iconKey: 'eye',
-    label:  'Statutes Retrieved Instantly',
-    sub:    'Pinecone semantic search scans 22+ Indian Acts to surface the exact Sections and Clauses most relevant to your query.',
-    accent: '#D4AF37',
-    tag:    'Pinecone Vector DB',
+    art: <SearchArt />,
+    title: 'MySaarthi looks up the law',
+    body: 'It searches the text of Indian Acts for the sections that match your situation.',
   },
   {
-    num:    '03',
-    iconKey: 'bolt',
-    label:  'AI Reasons Through the Law',
-    sub:    'Claude Opus 4.6 builds a transparent chain-of-thought, connecting your situation to cited statutes before forming a response.',
-    accent: '#C47A30',
-    tag:    'Claude Opus 4.6',
-  },
-  {
-    num:    '04',
-    iconKey: 'file',
-    label:  'Plain-Language Guidance',
-    sub:    'A cited, plain-English answer with recommended next steps — and one click to generate a ready-to-file legal document.',
-    accent: '#8B6914',
-    tag:    'PDF / DOCX export',
+    art: <AnswerArt />,
+    title: 'Get an answer you can check',
+    body: 'You get plain steps to take, each with its Act and section so you can verify it yourself.',
   },
 ];
 
-const LINE_GRADIENT = 'linear-gradient(to bottom, #E07848 0%, #D4AF37 40%, #C47A30 70%, #8B6914 100%)';
-
 export default function LandingHowItWorks() {
-  const ref    = useRef(null);
-  const inView = useInView(ref, { once: true, margin: '-80px' });
+  const [ref, live] = useLive(0.3);
 
   return (
-    <section id="how" ref={ref} className="relative px-6 py-24 md:px-12 overflow-hidden"
-             style={{ background: 'var(--color-hero)' }}>
+    <section id="how" className="lp-section lp-section--band">
+      <div className="lp-wrap">
+        <Reveal className="lp-section__head">
+          <h2 className="lp-h2">From question to cited answer.</h2>
+        </Reveal>
 
-      {/* Ambient glows */}
-      <div className="pointer-events-none absolute inset-0" style={{
-        background:
-          'radial-gradient(ellipse 50% 60% at 10% 30%, rgba(224,120,72,0.07) 0%, transparent 60%),' +
-          'radial-gradient(ellipse 40% 50% at 90% 70%, rgba(91,141,239,0.06) 0%, transparent 60%)',
-      }} />
-
-      <div className="mx-auto max-w-3xl relative">
-
-        {/* Heading */}
-        <motion.div
-          initial="hidden" animate={inView ? 'visible' : 'hidden'}
-          variants={stagger(0)} style={{ marginBottom: '3.5rem' }}
-        >
-          <motion.div variants={fadeUp}><Label>How It Works</Label></motion.div>
-          <motion.h2 variants={fadeUp}
-            style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(2rem,5vw,3rem)',
-                     fontWeight: 700, color: 'var(--color-ink)', lineHeight: 1.12,
-                     maxWidth: 480, marginBottom: 12 }}>
-            Four steps to legal clarity.
-          </motion.h2>
-          <motion.p variants={fadeUp}
-            style={{ fontFamily: 'var(--font-sans)', fontSize: '0.95rem', lineHeight: 1.7,
-                     color: 'rgba(0,0,0,0.48)', maxWidth: 420 }}>
-            From your question to a statute-backed answer — in under 5 seconds.
-          </motion.p>
-        </motion.div>
-
-        {/* Timeline */}
-        <div style={{ position: 'relative' }}>
-
-          {/* Vertical track */}
-          <div style={{
-            position: 'absolute', left: 13, top: 14, bottom: 14, width: 2,
-            background: 'rgba(0,0,0,0.08)', borderRadius: 999,
-          }}>
-            <motion.div
-              style={{ width: '100%', borderRadius: 999, background: LINE_GRADIENT, transformOrigin: 'top' }}
-              initial={{ scaleY: 0 }}
-              animate={inView ? { scaleY: 1 } : {}}
-              transition={{ duration: 1.8, delay: 0.4, ease: [0.22, 1, 0.36, 1] }}
-            />
-          </div>
-
-          {/* Steps */}
-          <motion.div initial="hidden" animate={inView ? 'visible' : 'hidden'} variants={stagger(0.14)}>
-            {STEPS.map((step, i) => (
-              <motion.div
-                key={step.num} variants={fadeUp}
-                style={{ display: 'flex', alignItems: 'flex-start', gap: 24, marginBottom: 16 }}
-              >
-                {/* Dot */}
-                <motion.div
-                  initial={{ scale: 0, opacity: 0 }}
-                  animate={inView ? { scale: 1, opacity: 1 } : {}}
-                  transition={{ delay: 0.5 + i * 0.15, duration: 0.35, type: 'spring', stiffness: 420 }}
-                  style={{
-                    flexShrink: 0, width: 28, height: 28, borderRadius: '50%', zIndex: 2,
-                    background: `${step.accent}15`, border: `2px solid ${step.accent}`,
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    fontFamily: 'var(--font-mono)', fontSize: '0.58rem', fontWeight: 700,
-                    color: step.accent, boxShadow: `0 0 14px ${step.accent}30`,
-                  }}
-                >
-                  {i + 1}
-                </motion.div>
-
-                {/* Card */}
-                <motion.div
-                  whileHover={{
-                    x: 6,
-                    background: 'rgba(255,255,255,0.75)',
-                    boxShadow: `0 8px 32px rgba(0,0,0,0.08), 0 0 0 1px ${step.accent}18`,
-                  }}
-                  transition={{ type: 'spring', stiffness: 340, damping: 26 }}
-                  style={{
-                    flex: 1,
-                    background: 'rgba(255,255,255,0.55)',
-                    border: '1px solid rgba(0,0,0,0.07)',
-                    borderLeft: `3px solid ${step.accent}55`,
-                    borderRadius: 18, padding: '20px 22px', cursor: 'default',
-                    backdropFilter: 'blur(8px)',
-                    boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
-                  }}
-                >
-                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: 16 }}>
-                    {/* Icon box */}
-                    <div style={{
-                      flexShrink: 0, width: 46, height: 46, borderRadius: 13,
-                      background: `${step.accent}10`, border: `1.5px solid ${step.accent}25`,
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    }}>
-                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
-                           stroke={step.accent} strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
-                        {(ICONS[step.iconKey] || []).map((d, j) => <path key={j} d={d} />)}
-                      </svg>
-                    </div>
-
-                    {/* Text */}
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{
-                        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                        flexWrap: 'wrap', gap: 8, marginBottom: 7,
-                      }}>
-                        <h3 style={{
-                          fontFamily: 'var(--font-display)', fontSize: '1.05rem', fontWeight: 700,
-                          color: 'var(--color-ink)', lineHeight: 1.25, margin: 0,
-                        }}>
-                          {step.label}
-                        </h3>
-                        <span style={{
-                          padding: '3px 11px', borderRadius: 999, flexShrink: 0,
-                          background: `${step.accent}10`, border: `1px solid ${step.accent}20`,
-                          fontFamily: 'var(--font-mono)', fontSize: '0.57rem',
-                          letterSpacing: '0.14em', textTransform: 'uppercase', color: step.accent,
-                        }}>
-                          {step.tag}
-                        </span>
-                      </div>
-                      <p style={{
-                        fontFamily: 'var(--font-sans)', fontSize: '0.82rem', lineHeight: 1.7,
-                        color: 'rgba(0,0,0,0.48)', margin: 0,
-                      }}>
-                        {step.sub}
-                      </p>
-                    </div>
-                  </div>
-                </motion.div>
-              </motion.div>
-            ))}
-          </motion.div>
-        </div>
-
-        {/* Bottom metric */}
-        <motion.div
-          initial={{ opacity: 0 }} animate={inView ? { opacity: 1 } : {}}
-          transition={{ delay: 1.4, duration: 0.6 }}
-          style={{ marginTop: 12, paddingLeft: 52, display: 'flex', alignItems: 'center', gap: 10 }}
-        >
-          <div style={{
-            width: 6, height: 6, borderRadius: '50%', background: 'var(--color-gold)',
-            boxShadow: '0 0 8px rgba(212,175,55,0.6)',
-          }} />
-          <span style={{
-            fontFamily: 'var(--font-mono)', fontSize: '0.67rem',
-            letterSpacing: '0.18em', textTransform: 'uppercase',
-            color: 'rgba(0,0,0,0.32)',
-          }}>
-            Average response time · under 5 seconds
-          </span>
-        </motion.div>
-
+        <ol ref={ref} className={`lp-steps${live ? ' is-live' : ''}`}>
+          {STEPS.map(({ art, title, body }, i) => (
+            <li key={title} className="lp-step" style={{ '--step': i }}>
+              <div className="lp-step__art" aria-hidden="true">{art}</div>
+              <span className="lp-step__n" aria-hidden="true">{i + 1}</span>
+              <h3>{title}</h3>
+              <p>{body}</p>
+            </li>
+          ))}
+        </ol>
       </div>
     </section>
   );

@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence, useScroll, useMotionValueEvent } from 'framer-motion';
-import { SignInButton, SignUpButton } from '@clerk/react';
+import { SignInButton } from '@clerk/react';
 import { useAuth } from '../hooks/useAuth.js';
 
 /* ─── Resizable / Floating Navbar ──────────────────────────────── */
@@ -20,6 +20,22 @@ export function ResizableNavbar({ navItems, ctaLabel = 'Get Started', ctaTo = '/
 
   const initial = userDisplay?.name?.[0]?.toUpperCase() || user?.email?.[0]?.toUpperCase() || '?';
 
+  // A scroll started while the menu is collapsing gets cancelled (the address changes,
+  // the page stays put), so remember the target and go once the menu has finished closing.
+  const pendingSection = useRef(null);
+  const goToSection = (e, href) => {
+    setMobileOpen(false);
+    if (!href.startsWith('#')) return;
+    e.preventDefault();
+    window.history.pushState(null, '', href);
+    pendingSection.current = href;
+  };
+  const scrollToPendingSection = () => {
+    if (!pendingSection.current) return;
+    document.querySelector(pendingSection.current)?.scrollIntoView();
+    pendingSection.current = null;
+  };
+
   return (
     <>
       <div className="fixed inset-x-0 top-0 z-50 flex items-start justify-center">
@@ -29,20 +45,23 @@ export function ResizableNavbar({ navItems, ctaLabel = 'Get Started', ctaTo = '/
           initial={{ opacity: 0, y: -8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
-          className="hidden lg:flex items-center justify-between"
+          className="hidden lg:grid items-center"
           style={{
-            width: scrolled ? '62%' : '100%',
+            // Three tracks keep the links centred and in the flow, so they can
+            // never slide under the buttons the way an absolute overlay did.
+            gridTemplateColumns: '1fr auto 1fr',
+            columnGap: 16,
+            width: scrolled ? 'min(calc(100% - 32px), 1040px)' : '100%',
             borderRadius: scrolled ? 999 : 0,
             marginTop: scrolled ? 12 : 0,
             padding: scrolled ? '10px 22px' : '16px 24px',
-            minWidth: scrolled ? 740 : 'unset',
             backdropFilter: 'blur(20px)',
             background: navBg,
             boxShadow: navShadow,
           }}
         >
           {/* Logo */}
-          <Link to="/" className="flex items-center gap-2.5 shrink-0">
+          <Link to="/" className="flex items-center gap-2.5 shrink-0" style={{ justifySelf: 'start' }}>
             <ScalesLogo dark={false} />
               <span style={{ fontFamily: 'var(--font-display)', fontSize: '1.15rem',
                            fontWeight: 600, color: '#1A1410', letterSpacing: '0.01em' }}>
@@ -50,12 +69,12 @@ export function ResizableNavbar({ navItems, ctaLabel = 'Get Started', ctaTo = '/
             </span>
           </Link>
 
-          {/* Nav links — absolute center */}
+          {/* Nav links — centre track */}
           <NavLinks items={navItems} />
 
           {/* Right controls */}
           <div className="flex items-center gap-2.5 shrink-0"
-               style={{ position: 'relative', zIndex: 10 }}>
+               style={{ justifySelf: 'end' }}>
             {isLoggedIn ? (
               <UserMenu
                 initial={initial}
@@ -73,37 +92,30 @@ export function ResizableNavbar({ navItems, ctaLabel = 'Get Started', ctaTo = '/
                     type="button"
                     style={{
                       fontFamily: 'var(--font-sans)',
-                      fontSize: '0.83rem',
-                      color: 'rgba(30,20,10,0.55)',
+                      fontSize: '0.9rem',
+                      color: 'rgba(26,20,16,0.7)',
                       background: 'none',
                       border: 'none',
                       cursor: 'pointer',
-                      padding: '6px 10px',
+                      padding: '10px 12px',
                     }}
                   >
-                    Sign In
+                    Sign in
                   </button>
                 </SignInButton>
-                <SignUpButton mode="redirect" forceRedirectUrl="/dashboard">
-                  <motion.button
-                    type="button"
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.97 }}
-                    transition={{ duration: 0.15, ease: [0.22, 1, 0.36, 1] }}
-                    className="rounded-full px-5 py-2 text-sm font-semibold text-white"
-                    style={{
-                      background: 'var(--color-saffron)',
-                      fontFamily: 'var(--font-sans)',
-                      boxShadow: '0 4px 14px rgba(230,92,0,0.35)',
-                      border: 'none',
-                      cursor: 'pointer',
-                    }}
-                  >
-                    Sign Up
-                  </motion.button>
-                </SignUpButton>
               </>
             )}
+            {/* The page's main action needs no account, so it leads; sign-up lives on the sign-in page */}
+            <Link to={ctaTo}
+                  className="rounded-full px-5 text-sm font-semibold text-white"
+                  style={{
+                    display: 'inline-flex', alignItems: 'center', height: 40,
+                    background: '#C94E00',
+                    fontFamily: 'var(--font-sans)',
+                    textDecoration: 'none',
+                  }}>
+              {ctaLabel}
+            </Link>
           </div>
         </motion.div>
 
@@ -119,8 +131,9 @@ export function ResizableNavbar({ navItems, ctaLabel = 'Get Started', ctaTo = '/
             marginTop: scrolled ? 10 : 0,
             padding: '13px 16px',
             backdropFilter: 'blur(20px)',
-            background: scrolled ? 'rgba(246,241,233,0.96)' : 'rgba(246,241,233,0.8)',
-            boxShadow: scrolled ? '0 0 0 1px rgba(0,0,0,0.07), 0 8px 40px rgba(0,0,0,0.09)' : 'none',
+            // Solid while the menu is open so the page underneath doesn't show through the links
+            background: scrolled || mobileOpen ? 'rgba(246,241,233,0.97)' : 'rgba(246,241,233,0.8)',
+            boxShadow: scrolled || mobileOpen ? '0 0 0 1px rgba(0,0,0,0.07), 0 8px 40px rgba(0,0,0,0.09)' : 'none',
           }}
         >
           <div className="flex items-center justify-between">
@@ -145,30 +158,29 @@ export function ResizableNavbar({ navItems, ctaLabel = 'Get Started', ctaTo = '/
                     : initial}
                 </button>
               ) : (
-                <SignInButton mode="redirect" forceRedirectUrl="/dashboard">
-                  <button
-                    type="button"
-                    className="rounded-full px-4 py-1.5 text-xs font-semibold text-white"
-                    style={{
-                      background: 'var(--color-saffron)',
-                      border: 'none',
-                      cursor: 'pointer',
-                      fontFamily: 'var(--font-sans)',
-                    }}
-                  >
-                    Sign In
-                  </button>
-                </SignInButton>
+                <Link to={ctaTo}
+                      className="rounded-full px-4 text-sm font-semibold text-white"
+                      style={{
+                        display: 'inline-flex', alignItems: 'center', height: 40,
+                        background: '#C94E00',
+                        fontFamily: 'var(--font-sans)',
+                        textDecoration: 'none',
+                      }}>
+                  Ask
+                </Link>
               )}
               <button type="button" onClick={() => setMobileOpen(o => !o)}
-                      style={{ color: '#0A0A0A', opacity: 0.75, background: 'none', border: 'none',
-                               cursor: 'pointer', padding: 2 }}>
+                      aria-label={mobileOpen ? 'Close menu' : 'Open menu'}
+                      aria-expanded={mobileOpen}
+                      style={{ color: '#1A1410', background: 'none', border: 'none', cursor: 'pointer',
+                               width: 44, height: 44, marginRight: -10,
+                               display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <HamburgerIcon open={mobileOpen} />
               </button>
             </div>
           </div>
 
-          <AnimatePresence initial={false}>
+          <AnimatePresence initial={false} onExitComplete={scrollToPendingSection}>
             {mobileOpen && (
               <motion.div
                 initial={{ opacity: 0, height: 0 }}
@@ -177,14 +189,15 @@ export function ResizableNavbar({ navItems, ctaLabel = 'Get Started', ctaTo = '/
                 transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
                 style={{ overflow: 'hidden' }}
               >
-                <div style={{ paddingTop: 16, paddingBottom: 8,
-                              borderTop: '1px solid rgba(0,0,0,0.07)', marginTop: 12 }}>
+                <div style={{ paddingTop: 8, paddingBottom: 8,
+                              borderTop: '1px solid rgba(0,0,0,0.07)', marginTop: 8 }}>
                   {navItems.map(item => (
                     <a key={item.href} href={item.href}
-                       onClick={() => setMobileOpen(false)}
-                       style={{ display: 'block', fontFamily: 'var(--font-sans)',
-                                fontSize: '0.9rem', color: 'rgba(40,30,10,0.50)',
-                                padding: '0.55rem 0.25rem', textDecoration: 'none' }}>
+                       onClick={e => goToSection(e, item.href)}
+                       style={{ display: 'flex', alignItems: 'center', minHeight: 48,
+                                fontFamily: 'var(--font-sans)',
+                                fontSize: '1.05rem', color: '#1A1410',
+                                padding: '0 0.25rem', textDecoration: 'none' }}>
                       {item.label}
                     </a>
                   ))}
@@ -202,15 +215,17 @@ export function ResizableNavbar({ navItems, ctaLabel = 'Get Started', ctaTo = '/
                         setMobileOpen(false);
                         navigate('/login');
                       }}
-                      className="block w-full mt-3 rounded-full px-5 py-2.5 text-sm font-semibold text-white text-center"
+                      className="block w-full mt-3 rounded-full px-5 text-sm font-semibold text-center"
                       style={{
-                        background: 'var(--color-saffron)',
+                        height: 46,
+                        background: 'transparent',
+                        color: '#1A1410',
                         fontFamily: 'var(--font-sans)',
-                        border: 'none',
+                        border: '1.5px solid rgba(26,20,16,0.3)',
                         cursor: 'pointer',
                       }}
                     >
-                      Sign In / Sign Up
+                      Sign in or create an account
                     </button>
                   )}
                 </div>
@@ -319,18 +334,17 @@ function NavLinks({ items }) {
   const [hovered, setHovered] = useState(null);
 
   return (
-    <div className="absolute inset-0 hidden lg:flex items-center justify-center gap-0.5"
-         style={{ pointerEvents: 'none' }}>
+    <div className="hidden lg:flex items-center justify-center gap-0.5">
       {items.map((item, i) => (
         <a key={item.href} href={item.href}
            onMouseEnter={() => setHovered(i)}
            onMouseLeave={() => setHovered(null)}
            className="relative px-4 py-2 rounded-full"
            style={{
-             fontFamily: 'var(--font-sans)', fontSize: '0.83rem',
-             color: hovered === i ? '#1A1410' : 'rgba(30,20,10,0.50)',
+             fontFamily: 'var(--font-sans)', fontSize: '0.9rem',
+             color: hovered === i ? '#1A1410' : 'rgba(26,20,16,0.7)',
              transition: 'color 0.15s', textDecoration: 'none',
-             zIndex: 1, pointerEvents: 'auto',
+             whiteSpace: 'nowrap',
            }}>
           {hovered === i && (
             <motion.div layoutId="nav-pill"
