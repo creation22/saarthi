@@ -1,6 +1,6 @@
+import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
-import dotenv from 'dotenv';
 import rateLimit from 'express-rate-limit';
 import { connectDB } from './config/db.js';
 import queryRoutes    from './routes/query.routes.js';
@@ -14,8 +14,6 @@ import matterRoutes   from './routes/matter.routes.js';
 import lawyersRoutes  from './routes/lawyers.routes.js';
 import { errorHandler } from './middleware/errorHandler.js';
 import { refreshStaleCases } from './services/ecourts.service.js';
-
-dotenv.config();
 
 if (!process.env.JWT_SECRET) {
   console.error('FATAL: JWT_SECRET is not set. Add it to Backend/.env (see .env.example).');

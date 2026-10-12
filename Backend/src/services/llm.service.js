@@ -1,38 +1,117 @@
 import Anthropic from '@anthropic-ai/sdk';
+import OpenAI from 'openai';
+import {
+  resolveLlmProvider,
+  OPENAI_CHAT_MODEL,
+  ANTHROPIC_CHAT_MODEL,
+} from '../config/llm.config.js';
 
-const client = new Anthropic({
-  apiKey: process.env.ANTHROPIC_API_KEY,
-  timeout: 90000,
-  maxRetries: 2,
-});
+let anthropicClient = null;
+let openaiClient = null;
+
+function getAnthropicClient() {
+  const key = process.env.ANTHROPIC_API_KEY?.trim();
+  if (!key) return null;
+  if (!anthropicClient) {
+    anthropicClient = new Anthropic({ apiKey: key, timeout: 90000, maxRetries: 2 });
+  }
+  return anthropicClient;
+}
+
+function getOpenAIClient() {
+  const key = process.env.OPENAI_API_KEY?.trim();
+  if (!key) return null;
+  if (!openaiClient) {
+    openaiClient = new OpenAI({ apiKey: key, timeout: 90000, maxRetries: 2 });
+  }
+  return openaiClient;
+}
 
 const MAX_INPUT_CHARS = 12000;
-
-/** Extract the first text block safely — the API can return refusals/tool blocks. */
-function extractText(message) {
-  const block = message?.content?.find((b) => b?.type === 'text' && typeof b.text === 'string');
-  if (!block || !block.text.trim()) {
-    const err = new Error('Analysis model returned an empty response. Please try again.');
-    err.status = 502;
-    throw err;
-  }
-  return block.text;
-}
 
 function capInput(text) {
   const str = typeof text === 'string' ? text : String(text ?? '');
   return str.length > MAX_INPUT_CHARS ? str.slice(0, MAX_INPUT_CHARS) : str;
 }
 
-const SYSTEM_PROMPT = `You are an expert Indian legal assistant. You ONLY provide guidance based on the legal provisions retrieved and supplied to you. You must:
+function emptyResponseError() {
+  const err = new Error('Analysis model returned an empty response. Please try again.');
+  err.status = 502;
+  return err;
+}
 
-1. Cite the specific Act name and Section number for every legal point you make.
-2. Explain your reasoning step by step — this is your chain-of-thought.
-3. Use plain, jargon-free language that a non-lawyer can understand.
-4. Conclude with clear, numbered procedural next steps the user should take.
-5. If the retrieved context does not cover the query, say so explicitly and advise the user to consult a qualified lawyer.
+function extractAnthropicText(message) {
+  const block = message?.content?.find((b) => b?.type === 'text' && typeof b.text === 'string');
+  if (!block || !block.text.trim()) throw emptyResponseError();
+  return block.text;
+}
 
-Never fabricate statutes or case citations.`;
+function assertLlmConfigured() {
+  if (!resolveLlmProvider()) {
+    const err = new Error('No LLM configured. Set OPENAI_API_KEY or ANTHROPIC_API_KEY in Backend/.env');
+    err.status = 503;
+    throw err;
+  }
+}
+
+/**
+ * @param {{ system?: string, user: string, maxTokens: number, json?: boolean }} opts
+ */
+async function complete({ system, user, maxTokens, json = false }) {
+  assertLlmConfigured();
+  const provider = resolveLlmProvider();
+
+  if (provider === 'openai') {
+    const client = getOpenAIClient();
+    if (!client) {
+      const err = new Error('OPENAI_API_KEY is missing');
+      err.status = 503;
+      throw err;
+    }
+    const messages = [];
+    if (system) messages.push({ role: 'system', content: system });
+    messages.push({ role: 'user', content: user });
+
+    const response = await client.chat.completions.create({
+      model: OPENAI_CHAT_MODEL,
+      max_tokens: maxTokens,
+      messages,
+      ...(json ? { response_format: { type: 'json_object' } } : {}),
+    });
+
+    const text = response.choices[0]?.message?.content?.trim();
+    if (!text) throw emptyResponseError();
+    return text;
+  }
+
+  const anthropic = getAnthropicClient();
+  if (!anthropic) {
+    const err = new Error('ANTHROPIC_API_KEY is missing');
+    err.status = 503;
+    throw err;
+  }
+
+  const message = await anthropic.messages.create({
+    model: ANTHROPIC_CHAT_MODEL,
+    max_tokens: maxTokens,
+    ...(system ? { system } : {}),
+    messages: [{ role: 'user', content: user }],
+  });
+
+  return extractAnthropicText(message);
+}
+
+const SYSTEM_PROMPT = `You are an expert Indian legal assistant (Saarthi / LegalSahayak). The user may ask anything — you always give a direct, helpful answer oriented to Indian law.
+
+Rules:
+1. Answer the user's question first. Do not refuse because retrieved documents are incomplete or off-topic.
+2. Apply whichever Indian laws, constitutional articles, rules, and common procedures fit the situation (Central Acts, Constitution, criminal/civil procedure, consumer, labour, property, family, cyber, etc.).
+3. Prefer the RETRIEVED LEGAL CONTEXT when it is relevant; add broader Indian legal principles and applicable statutes from your knowledge when needed.
+4. Cite Act names and section/article numbers where you are confident. If you are unsure of an exact section, name the Act and describe the legal position without inventing a fake section number.
+5. Explain reasoning step by step in plain language a non-lawyer can understand.
+6. End with numbered procedural next steps (forums, complaints, police/court, timelines where known).
+
+This is general legal information, not a substitute for a qualified advocate. Mention consulting a lawyer or DLSA for court matters or high-stakes decisions.`;
 
 /**
  * Generate a legally grounded response with chain-of-thought reasoning.
@@ -41,41 +120,31 @@ Never fabricate statutes or case citations.`;
  * @returns {string}             LLM response text
  */
 export async function getLegalGuidance(userQuery, legalContext) {
-  const userPrompt = `RETRIEVED LEGAL CONTEXT:
+  const userPrompt = `RETRIEVED LEGAL CONTEXT (from knowledge base — use if relevant; do not limit your answer to this alone):
 ${capInput(legalContext)}
 
 USER QUERY:
 ${capInput(userQuery)}
 
-Please provide:
+Respond in this structure:
+### Direct Answer
+(address what the user asked in clear terms)
+
 ### Applicable Law
-(cite the exact Act and Section)
+(Indian Acts, Articles of the Constitution, rules — cite sections/articles where you can)
 
 ### Step-by-Step Reasoning
-(chain-of-thought connecting the query to the law)
+(how the law applies to their facts)
 
 ### Plain-Language Guidance
-(what this means for the user)
+(practical meaning for the user)
 
 ### Procedural Next Steps
-(numbered actions the user should take)`;
+(numbered actions: where to go, what to file, typical timelines)`;
 
-  const message = await client.messages.create({
-    model: 'claude-opus-4-6',
-    max_tokens: 1800,
-    system: SYSTEM_PROMPT,
-    messages: [{ role: 'user', content: userPrompt }],
-  });
-
-  return extractText(message);
+  return complete({ system: SYSTEM_PROMPT, user: userPrompt, maxTokens: 1800 });
 }
 
-/**
- * Extract structured fields from a user query for document generation.
- * @param {string} query    User's free-text description
- * @param {string} docType  'fir' | 'consumer' | 'notice'
- * @returns {string}        Drafted document body
- */
 /**
  * Analyse an uploaded legal document / contract and return structured JSON.
  * @param {string} extractedText   Raw text from the uploaded document
@@ -83,12 +152,10 @@ Please provide:
  * @returns {object}               Parsed analysis object
  */
 export async function analyzeContract(extractedText, filename = '') {
-  // Cap at ~14 000 chars to avoid token overflow while keeping depth
   const capped = typeof extractedText === 'string' ? extractedText : String(extractedText ?? '');
   const text = capped.length > 14000
     ? capped.slice(0, 14000) + '\n\n[Document truncated — first 14 000 characters analysed]'
     : capped;
-  // Filenames are user-controlled — keep them to one safe line in the prompt
   const safeFilename = String(filename ?? '').replace(/[\r\n\t]+/g, ' ').trim().slice(0, 120);
 
   const prompt = `You are a senior Indian contract lawyer. Analyse the following legal document thoroughly and return ONLY valid JSON — no markdown, no preamble, no trailing text.
@@ -134,23 +201,16 @@ Rules:
 - If the document appears benign, riskScore should be 1–3 and redFlags can be empty.
 - Return ONLY the JSON object. Nothing else.`;
 
-  const message = await client.messages.create({
-    model: 'claude-opus-4-6',
-    max_tokens: 2500,
-    messages: [{ role: 'user', content: prompt }],
-  });
+  const raw = await complete({ user: prompt, maxTokens: 2500, json: resolveLlmProvider() === 'openai' });
 
-  const raw = extractText(message).trim();
-
-  // Strip accidental markdown fences if model wraps output
-  let jsonStr = raw.startsWith('```')
-    ? raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```[\s\S]*$/, '').trim()
-    : raw;
+  let jsonStr = raw.trim();
+  if (jsonStr.startsWith('```')) {
+    jsonStr = jsonStr.replace(/^```(?:json)?\s*/i, '').replace(/\s*```[\s\S]*$/, '').trim();
+  }
 
   try {
     return JSON.parse(jsonStr);
   } catch {
-    // Fall back to the largest {...} block in case of preamble/trailing text
     const start = jsonStr.indexOf('{');
     const end = jsonStr.lastIndexOf('}');
     if (start !== -1 && end > start) {
@@ -178,14 +238,8 @@ export async function draftLegalDocument(query, docType) {
 Requirements:
 - Use proper formal/legal language appropriate for ${docDescriptions[docType] ?? 'a legal document'}.
 - Fill in placeholder fields with [FIELD_NAME] where exact details are missing.
-- Include all standard sections a ${docDescriptions[docType] ?? 'legal document'} must contain under Indian law.
+- Include all standard sections a ${docDescriptions[docType] ?? 'a legal document'} must contain under Indian law.
 - Return ONLY the document body text — no explanations, no preamble.`;
 
-  const message = await client.messages.create({
-    model: 'claude-opus-4-6',
-    max_tokens: 1500,
-    messages: [{ role: 'user', content: prompt }],
-  });
-
-  return extractText(message);
+  return complete({ user: prompt, maxTokens: 1500 });
 }

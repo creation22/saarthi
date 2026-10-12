@@ -5,6 +5,7 @@
  * Usage:
  *   cd Backend
  *   node scripts/ingest.js
+ *   node scripts/ingest.js --fresh   # delete existing vectors, then re-ingest
  *
  * Prerequisites:
  *   - PINECONE_API_KEY, PINECONE_INDEX, OPENAI_API_KEY must be set in .env
@@ -15,7 +16,6 @@
 import dotenv from 'dotenv';
 dotenv.config();
 
-import { RecursiveCharacterTextSplitter } from '@langchain/core/text_splitter';
 import { OpenAIEmbeddings } from '@langchain/openai';
 import { PineconeStore } from '@langchain/pinecone';
 import { Pinecone } from '@pinecone-database/pinecone';
@@ -25,6 +25,27 @@ import { fileURLToPath } from 'url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const DATA_DIR = path.resolve(__dirname, '../data');
+
+function splitText(text, chunkSize = 1000, overlap = 150) {
+  const chunks = [];
+  let start = 0;
+  while (start < text.length) {
+    const end = Math.min(start + chunkSize, text.length);
+    chunks.push(text.slice(start, end));
+    if (end >= text.length) break;
+    start = Math.max(0, end - overlap);
+  }
+  return chunks;
+}
+
+function splitDocuments(docs) {
+  return docs.flatMap((doc) =>
+    splitText(doc.pageContent).map((pageContent) => ({
+      pageContent,
+      metadata: doc.metadata,
+    }))
+  );
+}
 
 async function loadDocuments() {
   const files = (await readdir(DATA_DIR)).filter((f) => f.endsWith('.txt'));
@@ -43,21 +64,26 @@ async function loadDocuments() {
 }
 
 async function main() {
+  const fresh = process.argv.includes('--fresh');
   const rawDocs = await loadDocuments();
 
-  const splitter = new RecursiveCharacterTextSplitter({
-    chunkSize: 1000,
-    chunkOverlap: 150,
-  });
-
-  const chunks = await splitter.splitDocuments(rawDocs);
+  const chunks = splitDocuments(rawDocs);
   console.log(`Split into ${chunks.length} chunks`);
 
   const pc = new Pinecone({ apiKey: process.env.PINECONE_API_KEY });
   const index = pc.Index(process.env.PINECONE_INDEX);
 
+  if (fresh) {
+    console.log('Clearing existing vectors (--fresh)…');
+    try {
+      await index.deleteAll();
+    } catch (err) {
+      console.warn('deleteAll:', err.message, '(continuing with upsert)');
+    }
+  }
+
   const embeddings = new OpenAIEmbeddings({
-    model: 'text-embedding-ada-002',
+    model: process.env.OPENAI_EMBEDDING_MODEL || 'text-embedding-ada-002',
     openAIApiKey: process.env.OPENAI_API_KEY,
   });
 

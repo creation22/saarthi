@@ -103,7 +103,7 @@ function SidebarLink({ to, children, variant = 'default' }) {
 /* ─── Main export ───────────────────────────────────────────────── */
 export default function Home() {
   const { sessionId, resetSession } = useSession();
-  const { isLoggedIn, user } = useAuth();
+  const { isLoggedIn, userDisplay } = useAuth();
   const [messages, setMessages]   = useState([]);
   const [loading, setLoading]     = useState(false);
   const [language, setLanguage]   = useState('en-IN');
@@ -244,7 +244,7 @@ export default function Home() {
             <NavPill to="/analyze" accent>Analyze</NavPill>
             <NavPill to="/history">History</NavPill>
             {isLoggedIn
-              ? <NavPill to="/dashboard" accent>{user?.name?.split(' ')[0]} ▾</NavPill>
+              ? <NavPill to="/dashboard" accent>{userDisplay?.name?.split(' ')[0] ?? 'Account'} ▾</NavPill>
               : <NavPill to="/login">Sign In</NavPill>
             }
             <motion.button

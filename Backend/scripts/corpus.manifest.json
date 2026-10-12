@@ -1,0 +1,38 @@
+{
+  "constitution": {
+    "output": "constitution_of_india.txt",
+    "source": "captn3m0/constitution (plain-text edition; community-maintained — verify against indiacode.nic.in for production)",
+    "baseUrl": "https://raw.githubusercontent.com/captn3m0/constitution/master",
+    "files": [
+      "Preamble.txt",
+      "PART1.txt", "PART2.txt", "PART3.txt", "PART4.txt", "PART4A.txt", "PART5.txt", "PART6.txt", "PART7.txt", "PART8.txt",
+      "PART9.txt", "PART9A.txt", "PART9B.txt", "PART10.txt", "PART11.txt", "PART12.txt", "PART13.txt", "PART14.txt", "PART14A.txt",
+      "PART15.txt", "PART16.txt", "PART17.txt", "PART18.txt", "PART19.txt", "PART20.txt", "PART21.txt", "PART22.txt",
+      "SCHEDULE1.txt", "SCHEDULE2.txt", "SCHEDULE3.txt", "SCHEDULE4.txt", "SCHEDULE5.txt", "SCHEDULE6.txt",
+      "SCHEDULE7.txt", "SCHEDULE8.txt", "SCHEDULE9.txt", "SCHEDULE10.txt", "SCHEDULE11.txt", "SCHEDULE12.txt",
+      "APPENDIX5.txt"
+    ]
+  },
+  "localActs": {
+    "note": "Add full act .txt exports to Backend/data/ (filename must match rag SOURCE_META keys). India Code: https://www.indiacode.nic.in/",
+    "expectedFiles": [
+      "ipc_1860.txt",
+      "crpc_1973.txt",
+      "bharatiya_nyaya_sanhita_2023.txt",
+      "consumer_protection_act_2019.txt",
+      "rti_act_2005.txt",
+      "transfer_of_property_act_1882.txt",
+      "domestic_violence_act_2005.txt",
+      "posh_act_2013.txt",
+      "it_act_2000.txt",
+      "rera_2016.txt",
+      "labour_act.txt",
+      "payment_of_wages_act_1936.txt",
+      "code_on_wages_2019.txt",
+      "maternity_benefit_act_1961.txt",
+      "legal_services_authorities_act_1987.txt",
+      "arbitration_act_1996.txt",
+      "motor_vehicles_act_1988.txt"
+    ]
+  }
+}

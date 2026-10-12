@@ -1,6 +1,7 @@
 import { Pinecone } from '@pinecone-database/pinecone';
 import { PineconeStore } from '@langchain/pinecone';
 import { OpenAIEmbeddings } from '@langchain/openai';
+import { OPENAI_EMBEDDING_MODEL } from '../config/llm.config.js';
 
 let vectorStore = null;
 
@@ -11,7 +12,7 @@ async function getVectorStore() {
   const index = pc.Index(process.env.PINECONE_INDEX);
 
   const embeddings = new OpenAIEmbeddings({
-    model: 'text-embedding-ada-002',
+    model: OPENAI_EMBEDDING_MODEL,
     openAIApiKey: process.env.OPENAI_API_KEY,
   });
 
@@ -24,7 +25,17 @@ async function getVectorStore() {
 
 // Map source filenames → human-readable act names + India Code / Indian Kanoon URLs
 const SOURCE_META = {
+  'constitution_of_india.txt':         { label: 'Constitution of India',                url: 'https://www.indiacode.nic.in/handle/123456789/1362' },
   'ipc_1860.txt':                      { label: 'Indian Penal Code, 1860',              url: 'https://indiankanoon.org/search/?formInput=Indian+Penal+Code+1860' },
+  'bharatiya_nyaya_sanhita_2023.txt':  { label: 'Bharatiya Nyaya Sanhita, 2023',       url: 'https://www.indiacode.nic.in/' },
+  'transfer_of_property_act_1882.txt': { label: 'Transfer of Property Act, 1882',       url: 'https://indiankanoon.org/search/?formInput=Transfer+of+Property+Act+1882' },
+  'posh_act_2013.txt':                 { label: 'POSH Act, 2013',                       url: 'https://indiankanoon.org/search/?formInput=Sexual+Harassment+Workplace+2013' },
+  'rera_2016.txt':                     { label: 'RERA, 2016',                           url: 'https://indiankanoon.org/search/?formInput=RERA+2016' },
+  'payment_of_wages_act_1936.txt':     { label: 'Payment of Wages Act, 1936',           url: 'https://indiankanoon.org/search/?formInput=Payment+of+Wages+Act+1936' },
+  'code_on_wages_2019.txt':            { label: 'Code on Wages, 2019',                  url: 'https://www.indiacode.nic.in/' },
+  'maternity_benefit_act_1961.txt':    { label: 'Maternity Benefit Act, 1961',          url: 'https://indiankanoon.org/search/?formInput=Maternity+Benefit+Act+1961' },
+  'legal_services_authorities_act_1987.txt': { label: 'Legal Services Authorities Act, 1987', url: 'https://indiankanoon.org/search/?formInput=Legal+Services+Authorities+Act+1987' },
+  'arbitration_act_1996.txt':          { label: 'Arbitration and Conciliation Act, 1996', url: 'https://indiankanoon.org/search/?formInput=Arbitration+Act+1996' },
   'crpc_1973.txt':                     { label: 'CrPC, 1973',                           url: 'https://indiankanoon.org/search/?formInput=Code+of+Criminal+Procedure+1973' },
   'consumer_protection_act_2019.txt':  { label: 'Consumer Protection Act, 2019',        url: 'https://indiankanoon.org/search/?formInput=Consumer+Protection+Act+2019' },
   'domestic_violence_act_2005.txt':    { label: 'Protection of Women from DV Act, 2005', url: 'https://indiankanoon.org/search/?formInput=Protection+of+Women+from+Domestic+Violence+Act+2005' },
