@@ -1,44 +1,45 @@
+import { MotionConfig } from 'framer-motion';
 import { ResizableNavbar } from '../components/ResizableNavbar.jsx';
 import LandingHero        from '../components/landing/LandingHero.jsx';
-import LandingTicker      from '../components/landing/LandingTicker.jsx';
-import LandingFeatures    from '../components/landing/LandingFeatures.jsx';
-import LandingChatDemo    from '../components/landing/LandingChatDemo.jsx';
-import LandingHowItWorks  from '../components/landing/LandingHowItWorks.jsx';
-import LandingNewFeatures from '../components/landing/LandingNewFeatures.jsx';
-import LandingLanguages   from '../components/landing/LandingLanguages.jsx';
 import LandingStats       from '../components/landing/LandingStats.jsx';
-import LandingComparison  from '../components/landing/LandingComparison.jsx';
+import LandingTools       from '../components/landing/LandingTools.jsx';
+import LandingHowItWorks  from '../components/landing/LandingHowItWorks.jsx';
+import LandingLanguages   from '../components/landing/LandingLanguages.jsx';
+import LandingLegalAid    from '../components/landing/LandingLegalAid.jsx';
 import LandingFAQ         from '../components/landing/LandingFAQ.jsx';
 import LandingCTA         from '../components/landing/LandingCTA.jsx';
+import '../components/landing/landing.css';
 
 export default function Landing() {
   return (
-    <div style={{ background: '#F6F1E9',
-                  fontFamily: 'var(--font-sans)', overflowX: 'hidden' }}>
+    // reducedMotion="user": people who ask for less motion get fades, with nothing sliding
+    <MotionConfig reducedMotion="user">
+      <div className="lp">
+        <a href="#main" className="lp-skip">Skip to content</a>
 
-      <ResizableNavbar
-        navItems={[
-          { label: 'Features',      href: '#features'  },
-          { label: 'How It Works',  href: '#how'       },
-          { label: 'What\'s New',   href: '#new'       },
-          { label: 'Find a Lawyer', href: '/lawyers'   },
-        ]}
-        ctaLabel="Get Started"
-        ctaTo="/chat"
-      />
+        <ResizableNavbar
+          navItems={[
+            { label: 'What you can do', href: '#tools' },
+            { label: 'How it works',    href: '#how'   },
+            { label: 'Free legal aid',  href: '#aid'   },
+            { label: 'Questions',       href: '#faq'   },
+          ]}
+          ctaLabel="Ask a question"
+          ctaTo="/chat"
+        />
 
-      <LandingHero />
-      <LandingChatDemo />
-      <LandingTicker />
-      <LandingFeatures />
-      <LandingHowItWorks />
-      <LandingNewFeatures />
-      <LandingLanguages />
-      <LandingStats />
-      <LandingComparison />
-      <LandingFAQ />
-      <LandingCTA />
+        <main id="main">
+          <LandingHero />
+          <LandingStats />
+          <LandingTools />
+          <LandingHowItWorks />
+          <LandingLanguages />
+          <LandingLegalAid />
+          <LandingFAQ />
+        </main>
 
-    </div>
+        <LandingCTA />
+      </div>
+    </MotionConfig>
   );
 }
