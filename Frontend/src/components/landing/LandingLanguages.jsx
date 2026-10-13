@@ -1,4 +1,4 @@
-import { Reveal } from './landingShared.jsx';
+import { MicIcon, Reveal } from './landingShared.jsx';
 
 /* Same eleven as the chat's language selector (components/LanguageSelector.jsx) */
 const LANGUAGES = [
@@ -15,34 +15,12 @@ const LANGUAGES = [
   { code: 'en', native: 'English',  name: 'English'   },
 ];
 
-/* One moving row. The list is laid out four times and the track slides by one
-   copy, so the loop has no seam even on a very wide screen. The copies are
-   hidden from screen readers. */
-function Row({ items, reverse }) {
-  return (
-    <div className={`lp-marquee${reverse ? ' lp-marquee--reverse' : ''}`}>
-      <div className="lp-marquee__track">
-        {[0, 1, 2, 3].map((copy) => (
-          <ul key={copy} aria-hidden={copy > 0 || undefined}>
-            {items.map(({ code, native, name }) => (
-              <li key={code}>
-                <span className="lp-lang__native" lang={code}>{native}</span>
-                {code !== 'en' && <span className="lp-small lp-lang__name">{name}</span>}
-              </li>
-            ))}
-          </ul>
-        ))}
-      </div>
-    </div>
-  );
-}
-
 export default function LandingLanguages() {
   return (
     <section id="languages" className="lp-section lp-languages">
       <div className="lp-wrap">
         <Reveal className="lp-section__head">
-          <h2 className="lp-h2">Ask in the language you think in.</h2>
+          <h2 className="lp-h2">Ask in the language<span>you think in.</span></h2>
           <p className="lp-lead">
             Type or speak your question in any of these eleven. MySaarthi understands
             it and answers in plain English.
@@ -50,8 +28,20 @@ export default function LandingLanguages() {
         </Reveal>
       </div>
 
-      <Row items={LANGUAGES.slice(0, 6)} />
-      <Row items={LANGUAGES.slice(6)} reverse />
+      <div className="lp-rails">
+        <ul className="lp-wrap lp-langs">
+          {LANGUAGES.map(({ code, native, name }, i) => (
+            <li key={code} style={{ '--i': i }}>
+              <span className="lp-lang__native" lang={code}>{native}</span>
+              <span className="lp-tag">{name}</span>
+            </li>
+          ))}
+          <li className="lp-langs__voice">
+            <span className="lp-lang__mic"><MicIcon size={22} /></span>
+            <span className="lp-tag lp-tag--saffron">Type or speak</span>
+          </li>
+        </ul>
+      </div>
     </section>
   );
 }

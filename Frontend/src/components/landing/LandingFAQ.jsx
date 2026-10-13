@@ -1,5 +1,7 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Arrow } from './landingShared.jsx';
 
 const FAQS = [
   { q: 'Is MySaarthi really free?',
@@ -31,9 +33,10 @@ function FAQItem({ q, a, id, open, onToggle }) {
         <button type="button" className="lp-faq__q" onClick={onToggle}
                 aria-expanded={open} aria-controls={`${id}-a`} id={`${id}-q`}>
           {q}
-          <svg className="lp-faq__icon" width="20" height="20" viewBox="0 0 24 24" fill="none"
-               stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
-            <path d="M12 5v14M5 12h14" />
+          {/* The upright bar of the plus folds away, leaving a minus */}
+          <svg className="lp-faq__icon" width="18" height="18" viewBox="0 0 24 24" fill="none"
+               stroke="currentColor" strokeWidth="2" strokeLinecap="square" aria-hidden="true">
+            <path className="lp-faq__bar" d="M12 5v14" /><path d="M5 12h14" />
           </svg>
         </button>
       </h3>
@@ -61,11 +64,15 @@ export default function LandingFAQ() {
     <section id="faq" className="lp-section">
       <div className="lp-wrap lp-faq__grid">
         <div className="lp-faq__head">
-          <h2 className="lp-h2">Questions people ask first.</h2>
-          <p>
-            MySaarthi explains what the law says. It does not replace a lawyer,
-            and it will tell you when you need one.
-          </p>
+          <h2 className="lp-h2">Questions people<span>ask first.</span></h2>
+          <div className="lp-faq__help">
+            <h3>Need a person, not an app?</h3>
+            <p>
+              MySaarthi explains what the law says. It does not replace a lawyer.
+              Free legal aid is listed by state and district.
+            </p>
+            <Link to="/lawyers" className="lp-btn lp-btn--primary lp-btn--arrow"><Arrow size={18} />Find legal aid</Link>
+          </div>
         </div>
 
         <div className="lp-faq__list">

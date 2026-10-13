@@ -1,37 +1,50 @@
 import { Link } from 'react-router-dom';
-import { PhoneIcon, Reveal, Wheel } from './landingShared.jsx';
+import { PhoneIcon, Reveal } from './landingShared.jsx';
+
+/* Thin arcs that sweep in from one corner of the panel */
+function Arcs({ className }) {
+  return (
+    <svg className={className} viewBox="0 0 300 220" fill="none" aria-hidden="true" preserveAspectRatio="none">
+      {[0, 1, 2, 3, 4, 5].map((i) => (
+        <path key={i} d={`M0 ${30 + i * 26} C 110 ${30 + i * 26}, 170 ${120 + i * 16}, 300 ${150 + i * 14}`} />
+      ))}
+    </svg>
+  );
+}
 
 /* Directory figures come from Backend/src/data/dlsa.json and lawyers_curated.json.
    Update them here if those files grow. */
 export default function LandingLegalAid() {
   return (
     <section id="aid" className="lp-section lp-aid">
-      <Wheel className="lp-aid__wheel" />
+      <div className="lp-wrap">
+        <Reveal className="lp-dark lp-aid__panel">
+          <Arcs className="lp-aid__arcs" />
+          <Arcs className="lp-aid__arcs lp-aid__arcs--flip" />
 
-      <div className="lp-wrap lp-aid__grid">
-        <Reveal className="lp-aid__copy">
-          <h2 className="lp-h2">Free legal aid is your right.</h2>
-          <p className="lp-lead">
-            Every district has a Legal Services Authority that gives eligible people
-            a lawyer at no cost. That includes women, children, members of Scheduled
-            Castes and Tribes, persons with disabilities, people in custody and
-            anyone on a low income.
-          </p>
-          <p>
-            MySaarthi lists 46 District Legal Services Authorities across 32 states
-            and union territories, along with 17 legal aid organisations.
-          </p>
-          <Link to="/lawyers" className="lp-btn lp-btn--line">Find legal aid near you</Link>
-        </Reveal>
+          <div className="lp-aid__copy">
+            <h2 className="lp-h2">Free legal aid<span>is your right.</span></h2>
+            <p className="lp-lead">
+              Every district has a Legal Services Authority that gives eligible people
+              a lawyer at no cost. That includes women, children, members of Scheduled
+              Castes and Tribes, persons with disabilities, people in custody and
+              anyone on a low income.
+            </p>
+            <p>
+              MySaarthi lists 46 District Legal Services Authorities across 32 states
+              and union territories, along with 17 legal aid organisations.
+            </p>
+          </div>
 
-        <Reveal className="lp-aid__call" delay={0.1}>
-          <span className="lp-ring" aria-hidden="true">
-            <i /><i /><i />
-            <span className="lp-ring__phone"><PhoneIcon size={24} /></span>
-          </span>
-          <a href="tel:15100" className="lp-aid__number" aria-label="Call 15100, the NALSA legal aid helpline">15100</a>
-          <p className="lp-aid__call-label">NALSA legal aid helpline</p>
-          <p className="lp-small">Toll-free from anywhere in India. Run by the National Legal Services Authority.</p>
+          <div className="lp-aid__call">
+            <span className="lp-tag lp-tag--gold">NALSA helpline · toll-free</span>
+            <a href="tel:15100" className="lp-aid__number" aria-label="Call 15100, the NALSA legal aid helpline">15100</a>
+            <p className="lp-small">From anywhere in India. Run by the National Legal Services Authority.</p>
+            <div className="lp-aid__actions">
+              <a href="tel:15100" className="lp-btn lp-btn--primary lp-btn--arrow"><PhoneIcon size={17} />Call 15100</a>
+              <Link to="/lawyers" className="lp-link">Find legal aid near you</Link>
+            </div>
+          </div>
         </Reveal>
       </div>
     </section>
