@@ -74,25 +74,6 @@ export function CountUp({ to, live, delay = 0 }) {
   return <span ref={ref}>{to}</span>;
 }
 
-/* ── 24-spoke wheel ─────────────────────────────────────────────
-   Background emblem. Stroke and size come from the class. */
-const SPOKES = Array.from({ length: 24 }, (_, i) => i * 15);
-export function Wheel({ className }) {
-  return (
-    <svg className={`lp-wheel${className ? ` ${className}` : ''}`} viewBox="0 0 200 200" fill="none" aria-hidden="true">
-      <circle cx="100" cy="100" r="97" />
-      <circle cx="100" cy="100" r="86" />
-      <circle cx="100" cy="100" r="15" />
-      {SPOKES.map((deg) => (
-        <line key={deg} x1="100" y1="85" x2="100" y2="14" transform={`rotate(${deg} 100 100)`} />
-      ))}
-      {SPOKES.map((deg) => (
-        <circle key={deg} cx="100" cy="8.5" r="1.5" transform={`rotate(${deg + 7.5} 100 100)`} />
-      ))}
-    </svg>
-  );
-}
-
 /* ── Icons (24px grid, stroke follows text colour) ──────────── */
 function Icon({ size = 18, children, ...rest }) {
   return (
@@ -103,6 +84,7 @@ function Icon({ size = 18, children, ...rest }) {
   );
 }
 export const Arrow     = (p) => <Icon size={24} {...p}><path d="M5 12h14M13 6l6 6-6 6" /></Icon>;
+export const ArrowOut  = (p) => <Icon {...p}><path d="M7 17 17 7M8.5 7H17v8.5" /></Icon>;
 export const MicIcon   = (p) => <Icon {...p}><rect x="9" y="2.5" width="6" height="11" rx="3" /><path d="M5 11a7 7 0 0 0 14 0M12 18v3.5" /></Icon>;
 export const DocIcon   = (p) => <Icon {...p}><path d="M14 2.5H7a2 2 0 0 0-2 2v15a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7.5z" /><path d="M14 2.5v5h5M9 13h6M9 17h4" /></Icon>;
 export const ChatIcon  = (p) => <Icon {...p}><path d="M20.5 14.5a2 2 0 0 1-2 2H9l-5 4v-15a2 2 0 0 1 2-2h12.5a2 2 0 0 1 2 2z" /></Icon>;
@@ -111,5 +93,4 @@ export const HomeIcon  = (p) => <Icon {...p}><path d="M3.5 11 12 4l8.5 7M5.5 9.5
 export const BagIcon   = (p) => <Icon {...p}><path d="M5 8h14l-1 12.5H6zM9 8V6.5a3 3 0 0 1 6 0V8" /></Icon>;
 export const CaseIcon  = (p) => <Icon {...p}><rect x="3" y="7.5" width="18" height="12.5" rx="2" /><path d="M9 7.5V5.5a1.5 1.5 0 0 1 1.5-1.5h3A1.5 1.5 0 0 1 15 5.5v2M3 13h18" /></Icon>;
 export const PhoneIcon = (p) => <Icon {...p}><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" /></Icon>;
-export const CheckIcon = (p) => <Icon {...p}><path className="lp-draw" pathLength="1" d="m5 12.5 4.5 4.5L19 7.5" /></Icon>;
 export const DownIcon  = (p) => <Icon {...p}><path d="M12 4v11M7 10.5l5 5 5-5M5 20h14" /></Icon>;
